@@ -1,2 +1,2 @@
-from .transaction import TransactionType
+from .expense import ExpenseType
 from .user import UserType

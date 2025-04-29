@@ -1,5 +1,5 @@
-from .mutation import Mutation
-from .resolver import Query
+from .mutations import Mutation
+from .resolvers import Query
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 

@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import cors
-from .utils.db import get_engine, SQLModel
+from .utils.db import get_engine
+from .models.base import BaseModel
 from .graphql import graphql_app
+
 
 
 app = FastAPI()
@@ -21,8 +23,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     engine = get_engine()
-    SQLModel.metadata.create_all(engine)
-    # pass
+    BaseModel.metadata.create_all(bind=engine)
     
     
 
@@ -32,3 +33,4 @@ def root():
     return {"message": "Hello World"}
 
 app.include_router(graphql_app, prefix='/graphql')
+

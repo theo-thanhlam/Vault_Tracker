@@ -1,14 +1,15 @@
-
 from uuid import UUID
-from .base import BaseType, strawberry
+from ..types import ExpenseType
+from .base import BaseType
 from typing import List
-from .transaction import TransactionType
+import strawberry
+from datetime import datetime
+
 
 @strawberry.type
 class UserType(BaseType):
     firstName:str 
     lastName:str
     email:str
-    password:str
-    transactions:List[TransactionType]
-    
+    # password:str
+    expenses: List[ExpenseType]
