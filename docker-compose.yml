@@ -8,6 +8,8 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    networks:
+      - vault_tracker_network
 
   backend:
     build: ./backend
@@ -20,13 +22,31 @@ services:
       - redis
     env_file:
       - .env
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}  # Pass the password from .env
 
+      
+    networks:
+      - vault_tracker_network
 
   redis:
     image: redis:7
     container_name: vault_tracker-redis
     ports:
       - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD} >/dev/null 2>&1
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}  # Set in .env
+
+    volumes:
+      - redis_data:/data
+    networks:
+      - vault_tracker_network
+
+networks:
+  vault_tracker_network:
+    driver: bridge
 
 volumes:
   pgdata:
+  redis_data:

@@ -1,4 +1,4 @@
-from .user import *
+from .auth import *
 from .expense import *
 
 @strawberry.type

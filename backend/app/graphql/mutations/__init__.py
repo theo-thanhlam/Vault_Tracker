@@ -1,6 +1,6 @@
-from .user import *
+from .auth import *
 from .expense import *
 
 @strawberry.type
-class Mutation(UserMutation, ExpenseMutation):
+class Mutation(AuthMutation, ExpenseMutation):
     pass

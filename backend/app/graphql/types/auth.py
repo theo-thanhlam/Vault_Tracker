@@ -11,5 +11,10 @@ class UserType(BaseType):
     firstName:str 
     lastName:str
     email:str
-    # password:str
     expenses: List[ExpenseType]
+    
+@strawberry.type
+class RegisterType:
+    token:str
+    created_at:datetime 
+    

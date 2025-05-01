@@ -1,5 +1,5 @@
 from .base import BaseModel
-from sqlalchemy import Column, String, Enum
+from sqlalchemy import Column, String, Enum,Boolean
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 
@@ -16,4 +16,7 @@ class UserModel(BaseModel):
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.USER)
+    
+    is_verified = Column(Boolean, default= False)
+    
     expenses = relationship("ExpenseModel",back_populates="user", cascade="all, delete-orphan")

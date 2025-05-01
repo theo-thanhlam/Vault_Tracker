@@ -6,6 +6,6 @@ import datetime
 class ExpenseType(BaseType):
     
     amount:float
-    description:str
+    description:str | None
     category:str
     expense_date:datetime.date
