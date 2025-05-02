@@ -10,38 +10,62 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from .  import db
 from dotenv import load_dotenv
-
+import re
 
 load_dotenv()
 
-
-
-
-def hash_password(password:str):
+class AuthHandler:
     _salt = bcrypt.gensalt(rounds=12)
-    encoded = password.encode('utf-8')
-    hashed_password = bcrypt.hashpw(password=encoded, salt=_salt)
-    return hashed_password
-
-def verify_password(password:str, hashed_password):
-    encoded = password.encode('utf-8')
-    check = bcrypt.checkpw(password=encoded, hashed_password=hashed_password)
-    return check
-
-def create_new_user(session:Session, user_doc:UserModel):
-    try:
-        session.add(user_doc)
-        session.commit()
-        session.refresh(user_doc)
-    except Exception as e:
-        print("CREATE USER ERROR")
-        return
     
-def get_user_by_email(session:Session, email:str):
-    return session.query(UserModel).filter_by(email=email).first()
 
-def get_user_by_id(session:Session, id:UUID):
-    return session.get(UserModel,id)
+    
+    @classmethod
+    def hash_password(cls,password:str):
+        encoded = password.encode('utf-8')
+        hashed_password = bcrypt.hashpw(password=encoded, salt=cls._salt)
+        return hashed_password
+    
+    @staticmethod
+    def verify_password(password:str, hashed_password:str):
+        encoded = password.encode('utf-8')
+        check = bcrypt.checkpw(password=encoded, hashed_password=hashed_password)
+        return check
+    
+    @staticmethod
+    def check_valid_email(email:str):
+        _email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+        return re.fullmatch(_email_regex, email)
+
+    @staticmethod
+    def check_valid_password(password:str):
+        _strong_password_regex = r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"
+        return re.fullmatch(_strong_password_regex, password) 
+    
+    
+    
+    
+        
+
+class DatabaseHandler:
+    
+    @staticmethod
+    def create_new_user(session:Session, user_doc:UserModel):
+        try:
+            session.add(user_doc)
+            session.commit()
+            session.refresh(user_doc)
+        except Exception as e:
+            print("CREATE USER ERROR")
+            return
+    
+    @staticmethod    
+    def get_user_by_email(session:Session, email:str):
+        return session.query(UserModel).filter_by(email=email).first()
+    
+    @staticmethod
+    def get_user_by_id(session:Session, id:UUID):
+        return session.get(UserModel,id)
+
 
 class JWTHandler:
     _SIGNUP_SECRET = os.getenv("SIGNUP_SECRET")
@@ -73,11 +97,14 @@ class JWTHandler:
         return token
     
     @classmethod
-    def verify_signup_token(cls, token:str):
-        pass
+    def verify_signup_token(cls, token:str) -> dict:
+        payload = jwt.decode(token,key=cls._SIGNUP_SECRET,algorithms="HS256")
+        return payload
+    
     @classmethod
     def verify_login_token(cls, token:str):
-        pass
+        payload = jwt.decode(token,key=cls._LOGIN_SECRET,algorithms="HS256")
+        return payload
     
 class EmailHandler:
     smtp_config = {

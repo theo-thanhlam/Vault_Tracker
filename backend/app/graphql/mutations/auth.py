@@ -1,38 +1,74 @@
 import strawberry
 from uuid import UUID
-from ..types.auth import RegisterType
+from ..types.auth import *
 from ...utils import auth, db
 from ...models import UserModel
-from fastapi import HTTPException
-from ...utils.auth import JWTHandler, EmailHandler
+from ...utils.auth import JWTHandler, EmailHandler, DatabaseHandler, AuthHandler
+from typing import Union
 
-
-
-@strawberry.input
+@strawberry.input(description="Input data required to register a new user")
 class RegisterInput:
-    firstName: str
-    lastName: str
-    email: str
-    password: str
-
-@strawberry.type
-class AuthMutation:
+    firstName: str 
+    lastName: str 
+    email: str 
+    password: str 
     
-    @strawberry.mutation
-    def register(self, input:RegisterInput) ->RegisterType:
+
+def validate_input(input:RegisterInput): 
+    errors = []
+    if not AuthHandler.check_valid_email(input.email):
+        # raise ValueError("Please enter valid email format")
+        errors.append("Please enter valid email format")
+        
+    if not AuthHandler.check_valid_password(input.password):
+        errors.append("Please enter a combination of special char, number, uppercase and lowercase characters with at least 12 characters")
+        # raise ValueError("Please enter a combination of special char, number, uppercase and lowercase characters with at least 12 characters")
+    return errors
+@strawberry.type(description="Handles user-related authentication mutations")
+class AuthMutation:
+    @strawberry.mutation( description="Register a new user. Takes user input (first name, last name, email, password), "
+                    "creates a new user in the database, and sends a verification email with a token link"
+    )
+    def register(self, input: RegisterInput) -> RegisterUserResponse[RegisterUserSuccess]:
         session = db.get_session()
+
+        try:
+            # Validate input
+            errors = validate_input(input)
+
+            if errors:
+                return RegisterUserResponse(errors=[RegisterUserError(message=error) for error in errors], statusCode=409)
+            
+            # Check for existing user
+            existing_user = DatabaseHandler.get_user_by_email(session, input.email)
+            if existing_user:
+                return RegisterUserResponse(errors=[RegisterUserError(message="Existing email")], statusCode=409)
+
+            # Create new user
+            hashed_password = AuthHandler.hash_password(input.password)
+            new_user = UserModel(
+                firstName=input.firstName,
+                lastName=input.lastName,
+                email=input.email,
+                password=hashed_password
+            )
+
+            DatabaseHandler.create_new_user(session, new_user)
+
+            # Send email
+            token = JWTHandler.create_signup_token(new_user.id)
+            EmailHandler.send_verification_email(token=token, user_email=new_user.email)
+
+            success_data = RegisterUserSuccess(
+                token=token,
+                created_at=new_user.created_at,
+            )
+            return RegisterUserResponse(data=success_data,statusCode=200)
+
+       
+
+        except Exception as e:
+            return RegisterUserResponse(statusCode=500, errors=[RegisterUserError(message="Something went wrong")])
+
         
-        existing_user =  auth.get_user_by_email(session, input.email)
-        if existing_user:
-            raise HTTPException(status_code=409, detail="Existing email")
         
-        hashed_password = auth.hash_password(input.password)
-        new_user = UserModel(firstName=input.firstName, lastName=input.lastName, email=input.email, password=hashed_password)
-        
-        auth.create_new_user(session, new_user)
-        
-        token = JWTHandler.create_signup_token(new_user.id)
-        EmailHandler.send_verification_email(token=token, user_email=new_user.email)
-        
-        return RegisterType(token=token, created_at=new_user.created_at)
-      
