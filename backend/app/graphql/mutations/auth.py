@@ -24,6 +24,9 @@ def validate_input(input:RegisterInput):
         errors.append("Please enter a combination of special char, number, uppercase and lowercase characters with at least 12 characters")
         # raise ValueError("Please enter a combination of special char, number, uppercase and lowercase characters with at least 12 characters")
     return errors
+
+
+
 @strawberry.type(description="Handles user-related authentication mutations")
 class AuthMutation:
     @strawberry.mutation( description="Register a new user. Takes user input (first name, last name, email, password), "
