@@ -17,18 +17,18 @@ load_dotenv()
 class AuthHandler:
     _salt = bcrypt.gensalt(rounds=12)
     
-
-    
     @classmethod
     def hash_password(cls,password:str):
         encoded = password.encode('utf-8')
         hashed_password = bcrypt.hashpw(password=encoded, salt=cls._salt)
-        return hashed_password
+        return hashed_password.decode("utf-8")
     
     @staticmethod
     def verify_password(password:str, hashed_password:str):
-        encoded = password.encode('utf-8')
-        check = bcrypt.checkpw(password=encoded, hashed_password=hashed_password)
+        encoded_password = password.encode('utf-8')
+        encoded_hashed_password=hashed_password.encode("utf-8")
+        
+        check = bcrypt.checkpw(password=encoded_password, hashed_password=encoded_hashed_password)
         return check
     
     @staticmethod
@@ -92,8 +92,8 @@ class JWTHandler:
             "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
         }
         token = jwt.encode(payload, key=cls._LOGIN_SECRET,algorithm="HS256")
-        cls._session.add(token)
-        cls._session.commit()
+        # cls._session.add(VerificationModel(token=token))
+        # cls._session.commit()
         return token
     
     @classmethod

@@ -4,15 +4,17 @@ from ..types import ExpenseType
 from ...utils import db
 from ...models import UserModel
 from fastapi import HTTPException
+from strawberry import Info
 
 @strawberry.type
 class ExpenseQuery:
     @strawberry.field
-    def get_expense(self,id:UUID) -> ExpenseType:
-        
+    def get_expense(self,id:UUID, info:Info) -> ExpenseType:
         session =db.get_db()
         
-        expense = session.get(id)
-        if not expense:
-            raise HTTPException(status_code = 404 , detail = "Expense not found")
-        return ExpenseType(id=expense.id, amount = expense.amount)
+        
+        
+       
+       
+    
+    

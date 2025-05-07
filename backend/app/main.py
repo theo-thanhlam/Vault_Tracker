@@ -8,6 +8,7 @@ from .models.base import Base
 from fastapi import Request, HTTPException
 from .utils.auth import JWTHandler
 from .models import UserModel,VerificationModel
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
@@ -31,13 +32,16 @@ def startup():
 
 
 @app.get("/verify-email")
-def verify_email(token:str,request:Request):
+def verify_email(token:str):
 
     try:
+        # Check if register token exists in database
         session = get_session()
         token_existed = session.get(VerificationModel, token)
         if not token_existed:
             return {"message":"Invalid Token"}
+        
+        #Check valid token
         decoded_token=JWTHandler.verify_signup_token(token=token)
         if not decoded_token:
             return {"message":"Invalid token"}

@@ -5,6 +5,8 @@ from ...utils import auth, db
 from ...models import UserModel
 from ...utils.auth import JWTHandler, EmailHandler, DatabaseHandler, AuthHandler
 from typing import Union
+from fastapi import  Request, Response
+from strawberry.types import Info
 
 @strawberry.input(description="Input data required to register a new user")
 class RegisterInput:
@@ -13,8 +15,12 @@ class RegisterInput:
     email: str 
     password: str 
     
+@strawberry.input(description="Input data required to login")
+class LoginInput:
+    email: str 
+    password: str 
 
-def validate_input(input:RegisterInput): 
+def validate_register_input(input:RegisterInput): 
     errors = []
     if not AuthHandler.check_valid_email(input.email):
         # raise ValueError("Please enter valid email format")
@@ -29,6 +35,7 @@ def validate_input(input:RegisterInput):
 
 @strawberry.type(description="Handles user-related authentication mutations")
 class AuthMutation:
+    
     @strawberry.mutation( description="Register a new user. Takes user input (first name, last name, email, password), "
                     "creates a new user in the database, and sends a verification email with a token link"
     )
@@ -37,7 +44,7 @@ class AuthMutation:
 
         try:
             # Validate input
-            errors = validate_input(input)
+            errors = validate_register_input(input)
 
             if errors:
                 return RegisterUserResponse(errors=[RegisterUserError(message=error) for error in errors], statusCode=409)
@@ -72,6 +79,40 @@ class AuthMutation:
 
         except Exception as e:
             return RegisterUserResponse(statusCode=500, errors=[RegisterUserError(message="Something went wrong")])
+        
+    @strawberry.mutation
+    def login(self, input:LoginInput, info:Info) -> LoginUserResponse:
+        session = db.get_session()
+        user = DatabaseHandler.get_user_by_email(session=session, email=input.email)
+        
+        if not user :
+            return LoginUserResponse(errors=LoginUserError(message="User does not exist"), statusCode=401)
+        
+        password_matched = AuthHandler.verify_password(hashed_password=user.password, password=input.password)
+        if not password_matched:
+            return LoginUserResponse(errors=LoginUserError(message="Invalid credential"), statusCode=401)
+        token = JWTHandler.create_login_token(id=user.id)
+        success_data = LoginUserSuccess(
+            token=token
+        )
+        
+        response:Response = info.context["response"]
+        response.set_cookie("access_token", token, httponly=True)
+        
+        
+        return LoginUserResponse(data=success_data, statusCode=200)
+    
+    @strawberry.mutation
+    def logout(self,info:Info)->None:
+        user = info.context.get('user')
+        if user:
+            info.context['user'] = None
+        
+        response: Response = info.context["response"]
+        response.delete_cookie("access_token")
+        
+        
+            
 
         
         

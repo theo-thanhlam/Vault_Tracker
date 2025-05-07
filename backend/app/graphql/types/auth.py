@@ -36,4 +36,22 @@ class RegisterUserResponse(Generic[T]):
     statusCode:int = strawberry.field(description="HTTP code")
     
     
+@strawberry.type(description="Successful registration response")
+class LoginUserSuccess:
+    token: Optional[str] = strawberry.field(description="Login token")
+
+@strawberry.type
+class LoginUserError:
+    message:Optional[str] = strawberry.field(description="Description of the error")
+
+@strawberry.type(description="Response wrapper for user login")
+class LoginUserResponse(Generic[T]):
+    data: Optional[LoginUserSuccess] = strawberry.field(default=None, description="Registration result on success")
+    errors: Optional[LoginUserError] = strawberry.field(default=None, description="List of errors, if any")
+    statusCode:int = strawberry.field(description="HTTP code")
     
+@strawberry.type
+class GetCurrentUserResponse:
+    data: Optional[UserType] = strawberry.field(default=None)
+    errors: Optional[str] = strawberry.field(default=None, description="List of errors, if any")
+    statusCode:int = strawberry.field(description="HTTP code")

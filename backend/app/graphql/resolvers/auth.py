@@ -5,6 +5,8 @@ from ...utils import db,auth
 from ...models import UserModel
 from fastapi import HTTPException
 from datetime import datetime
+from strawberry.types import Info
+from ..types import GetCurrentUserResponse
 
 
 @strawberry.input
@@ -13,11 +15,14 @@ class UserQueryInput:
 
 @strawberry.type
 class UserQuery:
+    
+    
     @strawberry.field
-    def getUser(self, input:UserQueryInput) ->UserType:
-        session = db.get_session()
-        user = auth.get_user_by_id(session, input.id)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    def getCurrentUser(self, info:Info) -> GetCurrentUserResponse:
         
-        return UserType(id=user.id, firstName = user.firstName, lastName = user.lastName, expenses = user.expenses, created_at=user.created_at, email=user.email)
+        user = info.context.get("user")
+        if not user:
+            return GetCurrentUserResponse(errors="Not authenticated", statusCode=401)
+        user_doc = UserType(id=user.id, firstName = user.firstName, lastName = user.lastName, expenses = user.expenses, created_at=user.created_at, email=user.email)
+        return GetCurrentUserResponse(data=user_doc,statusCode=200)
+        
