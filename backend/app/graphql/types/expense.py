@@ -1,11 +1,7 @@
-from .base import BaseType, strawberry
-import datetime
+import strawberry
 
 
 @strawberry.type
-class ExpenseType(BaseType):
-    
+class ExpenseType():
     amount:float
-    description:str | None
-    category:str
-    expense_date:datetime.date
+   

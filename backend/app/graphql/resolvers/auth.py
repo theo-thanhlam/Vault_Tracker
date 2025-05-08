@@ -6,7 +6,7 @@ from ...models import UserModel
 from fastapi import HTTPException
 from datetime import datetime
 from strawberry.types import Info
-from ..types import GetCurrentUserResponse
+from ..types import *
 
 
 @strawberry.input
@@ -22,7 +22,7 @@ class UserQuery:
         
         user = info.context.get("user")
         if not user:
-            return GetCurrentUserResponse(errors="Not authenticated", statusCode=401)
+            return GetCurrentUserResponse(error=GetCurrentUserError(message="Not Authenticated"), statusCode=401)
         user_doc = UserType(id=user.id, firstName = user.firstName, lastName = user.lastName, expenses = user.expenses, created_at=user.created_at, email=user.email)
         return GetCurrentUserResponse(data=user_doc,statusCode=200)
         
