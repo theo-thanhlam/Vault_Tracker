@@ -1,6 +1,6 @@
 import redis
 from ..config.redis import redis_config
-from .auth import JWTHandler, DatabaseHandler
+from .handler import JWTHandler, DatabaseHandler
 from . import db
 from fastapi import HTTPException,status
 
@@ -18,7 +18,7 @@ def get_current_user(token:str=None):
     
     
     user = DatabaseHandler.get_user_by_id(session=session, id=decoded_token.get("id"))
-    # if not user.is_verified:
+    # if not user:
     #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not verified")
     
     return user

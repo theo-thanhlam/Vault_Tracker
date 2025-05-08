@@ -3,10 +3,11 @@ import strawberry
 from .types import *
 from ...utils import  db
 from ...models import UserModel
-from ...utils.auth import JWTHandler, EmailHandler, DatabaseHandler, AuthHandler
+from ...utils.handler import *
 
 from fastapi import   Response
 from strawberry.types import Info
+
 
 
 @strawberry.input(description="Input data required to register a new user")
@@ -25,12 +26,12 @@ def validate_register_input(input:RegisterInput) -> str|None:
     errors = []
     if not AuthHandler.check_valid_email(input.email):
         # raise ValueError("Please enter valid email format")
-        return "Please enter valid email format"
+        errors.append("Please enter valid email format")
         
     if not AuthHandler.check_valid_password(input.password):
-        return "Please enter a combination of special char, number, uppercase and lowercase characters with at least 12 characters"
+        errors.append("Please enter a combination of special char, number, uppercase and lowercase characters with at least 12 characters")
         # raise ValueError("Please enter a combination of special char, number, uppercase and lowercase characters with at least 12 characters")
-    
+    return errors
 
 
 
@@ -45,15 +46,15 @@ class AuthMutation:
 
         try:
             # Validate input
-            validate_error = validate_register_input(input)
+            validate_errors = validate_register_input(input)
 
-            if validate_error:
-                return RegisterUserResponse(error=RegisterUserError(message=validate_error) , statusCode=409)
+            if validate_errors:
+                return RegisterUserResponse(errors=[RegisterUserError(message=error) for error in validate_errors] , statusCode=409)
             
             # Check for existing user
             existing_user = DatabaseHandler.get_user_by_email(session, input.email)
             if existing_user:
-                return RegisterUserResponse(error=RegisterUserError(message="Existing email"), statusCode=409)
+                return RegisterUserResponse(errors=[RegisterUserError(message="Existing email")], statusCode=409)
 
             # Create new user
             hashed_password = AuthHandler.hash_password(input.password)
@@ -87,14 +88,14 @@ class AuthMutation:
         user = DatabaseHandler.get_user_by_email(session=session, email=input.email)
         
         if not user :
-            return LoginUserResponse(error=LoginUserError(message="User does not exist"), statusCode=401)
+            return LoginUserResponse(errors=[LoginUserError(message="User does not exist")], statusCode=401)
         
         password_matched = AuthHandler.verify_password(hashed_password=user.password, password=input.password)
         if not password_matched:
-            return LoginUserResponse(error=LoginUserError(message="Invalid credential"), statusCode=401)
+            return LoginUserResponse(errors=[LoginUserError(message="Invalid credential")], statusCode=401)
         
         if not user.is_verified:
-            return LoginUserResponse(error=LoginUserError(message="Please verify your email account before continue"), statusCode=401)
+            return LoginUserResponse(errors=[LoginUserError(message="Please verify your email account before continue")], statusCode=401)
         token = JWTHandler.create_login_token(id=user.id)
         success_data = LoginUserSuccess(
             token=token
@@ -105,11 +106,14 @@ class AuthMutation:
         response.set_cookie("access_token", token, httponly=True)
         
         
+        
         return LoginUserResponse(data=success_data, statusCode=200)
     
     @strawberry.mutation
+    @login_required
     def logout(self,info:Info)->None:
-        user = info.context.get('user')
+        user:UserModel = info.context.get('user')
+        
         if user:
             info.context['user'] = None
             response: Response = info.context["response"]

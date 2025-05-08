@@ -6,7 +6,7 @@ from .graphql import graphql_router
 from .utils.db import get_engine,get_session
 from .models.base import Base
 from fastapi import Request, HTTPException
-from .utils.auth import JWTHandler
+from .utils.handler import JWTHandler
 from .models import UserModel,VerificationModel
 from fastapi.responses import RedirectResponse
 

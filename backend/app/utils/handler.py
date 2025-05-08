@@ -1,7 +1,7 @@
 import bcrypt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
-from ..models import UserModel, VerificationModel
+from ..models import UserModel, VerificationModel, ExpenseModel
 import jwt
 import os
 import datetime
@@ -11,7 +11,8 @@ from email.mime.multipart import MIMEMultipart
 from .  import db
 from dotenv import load_dotenv
 import re
-
+from functools import wraps
+from strawberry.types import Info
 load_dotenv()
 
 class AuthHandler:
@@ -66,7 +67,22 @@ class DatabaseHandler:
     def get_user_by_id(session:Session, id:UUID):
         return session.get(UserModel,id)
 
-
+    @staticmethod
+    def create_new_expense(session:Session, expense_doc:ExpenseModel):
+        try:
+            session.add(expense_doc)
+            session.commit()
+            session.refresh(expense_doc)
+        except Exception as e:
+            print("CREATE EXPENSE ERROR")
+            return
+    
+    @staticmethod
+    def get_expense_by_id(session:Session, id:str):
+        return session.query(ExpenseModel).filter_by(id=id).first()
+    
+    
+    
 class JWTHandler:
     _SIGNUP_SECRET = os.getenv("SIGNUP_SECRET")
     _LOGIN_SECRET = os.getenv("LOGIN_SECRET")
@@ -135,4 +151,16 @@ class EmailHandler:
             server.starttls()
             server.login(cls.smtp_config["username"], cls.smtp_config["password"])
             server.send_message(msg)
-        
+
+
+def login_required(resolver):
+    from fastapi import HTTPException
+    @wraps(resolver)
+    def wrapper(*args, info: Info, **kwargs):
+        user = info.context.get("user")
+        if not user:
+            raise HTTPException(detail="Please login before proceed",status_code=401)
+        if not user.is_verified:
+            raise HTTPException(detail="Your account is not verified",status_code=401)
+        return resolver(*args, info=info, **kwargs)
+    return wrapper

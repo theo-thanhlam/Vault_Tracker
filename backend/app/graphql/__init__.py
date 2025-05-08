@@ -4,7 +4,7 @@ import strawberry
 from strawberry.fastapi import GraphQLRouter
 from ..utils import session
 from fastapi import Request, Response
-from ..utils.auth import JWTHandler
+from ..utils.handler import JWTHandler
 from jwt import PyJWTError
 
 def get_context(req:Request, res:Response) ->dict:

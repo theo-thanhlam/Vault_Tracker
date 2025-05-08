@@ -6,7 +6,7 @@ from typing import List,Generic, TypeVar
 import strawberry
 from datetime import datetime
 from strawberry.exceptions import StrawberryException
-from typing import Optional
+from typing import Optional,List
 
 T = TypeVar("T")
 
@@ -38,7 +38,7 @@ class RegisterUserError(AuthBaseError):
 @strawberry.type(description="Response wrapper for user registration.")
 class RegisterUserResponse(BaseResponse[RegisterUserSuccess, RegisterUserError]):
     data: Optional[RegisterUserSuccess] = strawberry.field(default=None, description="Registration result on success")
-    error: Optional[RegisterUserError] = strawberry.field(default=None, description="List of errors, if any")
+    errors: Optional[List[RegisterUserError]]= strawberry.field(default=None, description="List of errors, if any")
     statusCode:int = strawberry.field(description="HTTP code")
     
 @strawberry.type(description="Successful registration response")
@@ -52,7 +52,7 @@ class LoginUserError(AuthBaseError):
 @strawberry.type(description="Response wrapper for user login")
 class LoginUserResponse(BaseResponse[LoginUserSuccess,LoginUserError]):
     data: Optional[LoginUserSuccess] = strawberry.field(default=None, description="Registration result on success")
-    error: Optional[LoginUserError] = strawberry.field(default=None, description="List of errors, if any")
+    errors: Optional[List[LoginUserError]] = strawberry.field(default=None, description="List of errors, if any")
     statusCode:int = strawberry.field(description="HTTP code")
     
     
@@ -67,5 +67,5 @@ class GetCurrentUserError(AuthBaseError):
 @strawberry.type
 class GetCurrentUserResponse(BaseResponse[GetCurrentUserSuccess,GetCurrentUserError]):
     data: Optional[GetCurrentUserSuccess] = strawberry.field(default=None)
-    error: Optional[GetCurrentUserError] = strawberry.field(default=None, description="List of errors, if any")
+    errors: Optional[List[GetCurrentUserError]] = strawberry.field(default=None, description="List of errors, if any")
     statusCode:int = strawberry.field(description="HTTP code")
