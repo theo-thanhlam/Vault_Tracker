@@ -1,13 +1,13 @@
 import strawberry
-from uuid import UUID
-from ..types.auth import *
-from ...utils import auth, db
+
+from .types import *
+from ...utils import  db
 from ...models import UserModel
 from ...utils.auth import JWTHandler, EmailHandler, DatabaseHandler, AuthHandler
-from typing import Union
-from fastapi import  Request, Response
+
+from fastapi import   Response
 from strawberry.types import Info
-import asyncio
+
 
 @strawberry.input(description="Input data required to register a new user")
 class RegisterInput:
@@ -87,11 +87,14 @@ class AuthMutation:
         user = DatabaseHandler.get_user_by_email(session=session, email=input.email)
         
         if not user :
-            return LoginUserResponse(errors=LoginUserError(message="User does not exist"), statusCode=401)
+            return LoginUserResponse(error=LoginUserError(message="User does not exist"), statusCode=401)
         
         password_matched = AuthHandler.verify_password(hashed_password=user.password, password=input.password)
         if not password_matched:
-            return LoginUserResponse(errors=LoginUserError(message="Invalid credential"), statusCode=401)
+            return LoginUserResponse(error=LoginUserError(message="Invalid credential"), statusCode=401)
+        
+        if not user.is_verified:
+            return LoginUserResponse(error=LoginUserError(message="Please verify your email account before continue"), statusCode=401)
         token = JWTHandler.create_login_token(id=user.id)
         success_data = LoginUserSuccess(
             token=token

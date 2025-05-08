@@ -1,5 +1,5 @@
-from .mutations import Mutation
-from .resolvers import Query
+from .mutation import Mutation
+from .resolver import Query
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 from ..utils import session
@@ -9,7 +9,7 @@ from jwt import PyJWTError
 
 def get_context(req:Request, res:Response) ->dict:
    token = req.cookies.get("access_token")
-   user = None
+   
    try:
       user = session.get_current_user(token=token)
    except PyJWTError:

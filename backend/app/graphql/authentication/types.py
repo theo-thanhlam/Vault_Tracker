@@ -1,6 +1,6 @@
 from uuid import UUID
-from .expense import ExpenseType
-from .base import *
+from ..expense.types import ExpenseType
+from ..baseType import *
 
 from typing import List,Generic, TypeVar
 import strawberry
@@ -12,12 +12,20 @@ T = TypeVar("T")
 
 
 @strawberry.type
-class UserType:
-    id:UUID 
+class UserType(BaseType):
+
     firstName:str 
     lastName:str
     email:str
     expenses: List[ExpenseType]
+
+@strawberry.type(description="Generic response wrapper")
+class AuthBaseSuccess:
+    token: Optional[str] = strawberry.field(description="Authentication Token")
+
+@strawberry.type(description="Generic response wrapper")
+class AuthBaseError:
+    message: Optional[str] = strawberry.field(description="Error message")
     
 @strawberry.type(description="Successful registration response")
 class RegisterUserSuccess(AuthBaseSuccess):

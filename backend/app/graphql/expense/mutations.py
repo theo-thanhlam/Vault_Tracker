@@ -1,6 +1,6 @@
 import strawberry
 from uuid import UUID
-from ..types import UserType
+from .types import ExpenseType
 from ...utils import db
 from ...models import UserModel
 from fastapi import HTTPException
@@ -12,6 +12,6 @@ class ExpenseInput:
 
 @strawberry.type
 class ExpenseMutation:
-     def createExpense(self, input:ExpenseInput) ->UserType:
+     def createExpense(self, input:ExpenseInput) ->ExpenseType:
         session = db.get_session()
         pass

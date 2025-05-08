@@ -1,12 +1,7 @@
 import strawberry
 from uuid import UUID
-from ..types import UserType
-from ...utils import db,auth
-from ...models import UserModel
-from fastapi import HTTPException
-from datetime import datetime
 from strawberry.types import Info
-from ..types import *
+from .types import *
 
 
 @strawberry.input
@@ -14,9 +9,7 @@ class UserQueryInput:
     id:UUID
 
 @strawberry.type
-class UserQuery:
-    
-    
+class AuthQuery:
     @strawberry.field
     def getCurrentUser(self, info:Info) -> GetCurrentUserResponse:
         

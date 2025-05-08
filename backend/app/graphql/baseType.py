@@ -20,11 +20,3 @@ class BaseResponse(Generic[TData, TError]):
     data: Optional[TData] = strawberry.field(default=None, description="Response payload")
     error: Optional[TError] = strawberry.field(default=None, description="Errors if any")
     statusCode: int = strawberry.field(description="HTTP status code")
-
-@strawberry.type(description="Generic response wrapper")
-class AuthBaseSuccess:
-    token: Optional[str] = strawberry.field(description="Authentication Token")
-
-@strawberry.type(description="Generic response wrapper")
-class AuthBaseError:
-    message: Optional[str] = strawberry.field(description="Error message")

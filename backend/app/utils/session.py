@@ -18,8 +18,8 @@ def get_current_user(token:str=None):
     
     
     user = DatabaseHandler.get_user_by_id(session=session, id=decoded_token.get("id"))
-    if not user.is_verified:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not verified")
+    # if not user.is_verified:
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not verified")
     
     return user
     
