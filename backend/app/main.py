@@ -2,17 +2,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config.cors import cors_config
 from .utils import session
-from .graphql import graphql_router
+from .graphql import auth_graphql_router, protected_graphql_router
 from .utils.db import get_engine,get_session
 from .models.base import Base
 from fastapi import Request, HTTPException
 from .utils.handler import JWTHandler
-from .models import UserModel,VerificationModel
-from fastapi.responses import RedirectResponse
+from .models import UserModel,TokenModel
+from starlette.middleware.sessions import SessionMiddleware
+from .routers.authentication import auth_router
 
 app = FastAPI()
 
-#CORS
+#Middlewares
+
+## CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_config.ORIGINS,
@@ -21,12 +24,16 @@ app.add_middleware(
     allow_headers=cors_config.ALLOW_HEADERS
 )
 
+## Session
+app.add_middleware(SessionMiddleware, secret_key = "key")
+
+
 #Routers
 
 @app.on_event("startup")
 def startup():
-    engine = get_engine()
-    Base.metadata.create_all(bind=engine)
+    # engine = get_engine()
+    # Base.metadata.create_all(bind=engine)
     
     pass
 
@@ -37,7 +44,7 @@ def verify_email(token:str):
     try:
         # Check if register token exists in database
         session = get_session()
-        token_existed = session.get(VerificationModel, token)
+        token_existed = session.get(TokenModel, token)
         if not token_existed:
             return {"message":"Invalid Token"}
         
@@ -72,6 +79,6 @@ def root():
     return {"message": "Hello World"}
 
 
-
-app.include_router(graphql_router, prefix='/graphql')
+app.include_router(auth_router)
+app.include_router(protected_graphql_router, prefix='/api')
 

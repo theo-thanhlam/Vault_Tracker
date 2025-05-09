@@ -8,3 +8,6 @@ redis
 python-multipart
 sqlalchemy
 pyjwt
+authlib
+itsdangerous
+python-jose

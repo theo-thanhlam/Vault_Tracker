@@ -14,9 +14,9 @@ class UserModel(BaseModel):
     firstName = Column(String, nullable=False)
     lastName = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
-    password = Column(String, nullable=False)
+    password = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.USER)
     
-    is_verified = Column(Boolean, default= False)
+    email_verified = Column(Boolean, default= False)
     
     expenses = relationship("ExpenseModel",back_populates="user", cascade="all, delete-orphan")
