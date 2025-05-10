@@ -14,6 +14,8 @@ import re
 from functools import wraps
 from strawberry.types import Info
 from fastapi import HTTPException
+from google.oauth2 import id_token
+from google.auth.transport import requests
 load_dotenv()
 
 class AuthHandler:
@@ -72,7 +74,15 @@ class AuthHandler:
             return {"message": "Email verified successfully"}
         except Exception as e:
             pass
-    
+        
+    @staticmethod
+    async def verify_google_token(token:str):
+        try:
+            GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+            id_info = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
+            return id_info
+        except ValueError as e:
+            return None
     
     
         
@@ -186,7 +196,7 @@ class EmailHandler:
 
 
 def login_required(resolver):
-    from fastapi import HTTPException
+    
     @wraps(resolver)
     def wrapper(*args, info: Info, **kwargs):
         user = info.context.get("user")

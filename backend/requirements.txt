@@ -10,4 +10,5 @@ sqlalchemy
 pyjwt
 authlib
 itsdangerous
-python-jose
+google-auth
+requests

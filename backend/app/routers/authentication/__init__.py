@@ -8,13 +8,11 @@ from ...utils import session
 
 
 
-auth_router = APIRouter(prefix="/auth",dependencies=[Depends(session.verify_not_login)])
+auth_router = APIRouter()
 auth_router.include_router(google_router, prefix="/google")
-auth_router.include_router(auth_graphql_router, prefix="/manual")
+auth_router.include_router(auth_graphql_router, prefix="/auth")
 
-@auth_router.get("/")
-def index():
-    return RedirectResponse("/")
+
 
 
 @auth_router.get("/verify-email",description="Verify email route")

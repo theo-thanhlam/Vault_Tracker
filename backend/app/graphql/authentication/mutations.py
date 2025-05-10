@@ -2,7 +2,7 @@ import strawberry
 
 from .types import *
 from ...utils import  db
-from ...models import UserModel
+from ...models import UserModel,AuthProviderModel, AuthProviderName
 from ...utils.handler import *
 
 from fastapi import   Response
@@ -20,7 +20,11 @@ class RegisterInput:
 @strawberry.input(description="Input data required to login")
 class LoginInput:
     email: str 
-    password: str 
+    password: str
+    
+@strawberry.input(description="Google login")
+class GoogleLoginInput:
+    idToken:str
 
 def validate_register_input(input:RegisterInput) -> str|None: 
     errors = []
@@ -85,6 +89,8 @@ class AuthMutation:
         
     @strawberry.mutation
     def login(self, input:LoginInput, info:Info) -> LoginUserResponse:
+        if info.context.get("user"):
+            return LoginUserResponse(errors=[LoginUserError(message="Already Logged in")], statusCode=403)
         session = db.get_session()
         user = DatabaseHandler.get_user_by_email(session=session, email=input.email)
         
@@ -92,7 +98,7 @@ class AuthMutation:
             return LoginUserResponse(errors=[LoginUserError(message="User does not exist")], statusCode=401)
         
         if user.password == None:
-            return LoginUserResponse(errors=[LoginUserError(message="User already registered with providers")], statusCode=400)
+            return LoginUserResponse(errors=[LoginUserError(message="User already registered with other provider")], statusCode=400)
         
         password_matched = AuthHandler.verify_password(hashed_password=user.password, password=input.password)
         if not password_matched:
@@ -108,16 +114,62 @@ class AuthMutation:
         #Send login cookies to user (HTTP Only)
         response:Response = info.context["response"]
         response.set_cookie("access_token", token, httponly=True)
-        
-        
-        
+
         return LoginUserResponse(data=success_data, statusCode=200)
+    
+    @strawberry.mutation
+    async def googleLogin(self, input:GoogleLoginInput, info:Info) ->GoogleLoginResponse:
+        if info.context.get("user"):
+            return LoginUserResponse(errors=[LoginUserError(message="Already Logged in")], statusCode=403)
+        session = db.get_session()
+        google_idInfo = await AuthHandler.verify_google_token(input.idToken)
+        payload = {
+            'firstName':google_idInfo.get("given_name"),
+            'lastName':google_idInfo.get("family_name"),
+            'id':google_idInfo.get("id"),
+            "email_verified":google_idInfo.get("verified_email"),
+            'email':google_idInfo.get("email")
+         }
+        user = None
+        
+        existing_user = DatabaseHandler.get_user_by_email(session=session,email=payload.get("email"))
+        
+        if existing_user:
+            user = existing_user
+        else:
+            new_user = UserModel(
+                firstName=payload.get("firstName"), 
+                lastName = payload.get('lastName'), 
+                email=payload.get("email"), 
+                email_verified = payload.get("email_verified")
+                )
+            DatabaseHandler.create_new_user(session=session, user_doc=new_user)
+            
+            auth_provider_doc = AuthProviderModel(id=payload.get("id"), user_id=new_user.id, name=AuthProviderName.GOOGLE)
+            
+            try:
+                session.add(auth_provider_doc)
+                new_user.auth_provider_id = payload.get("id")
+                session.commit()
+                session.refresh(auth_provider_doc)
+            except Exception as e:
+                print("Create Auth Provider Record FAIL")
+                raise e
+            user = new_user
+        
+        login_token = JWTHandler.create_login_token(user.id)
+        
+        
+        
+        success_data = GoogleLoginSuccess(token=login_token)
+        response:Response = info.context["response"]
+        response.set_cookie("access_token", login_token, httponly=True)
+        return GoogleLoginResponse(data=success_data,statusCode=200)
     
     @strawberry.mutation
     @login_required
     def logout(self,info:Info)->None:
         user:UserModel = info.context.get('user')
-        
         if user:
             info.context['user'] = None
             response: Response = info.context["response"]

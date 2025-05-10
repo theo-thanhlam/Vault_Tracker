@@ -2,10 +2,9 @@ from uuid import UUID
 from ..expense.types import ExpenseType
 from ..baseType import *
 
-from typing import List,Generic, TypeVar
+from typing import List, TypeVar
 import strawberry
 from datetime import datetime
-from strawberry.exceptions import StrawberryException
 from typing import Optional,List
 
 T = TypeVar("T")
@@ -41,7 +40,7 @@ class RegisterUserResponse(BaseResponse[RegisterUserSuccess, RegisterUserError])
     errors: Optional[List[RegisterUserError]]= strawberry.field(default=None, description="List of errors, if any")
     statusCode:int = strawberry.field(description="HTTP code")
     
-@strawberry.type(description="Successful registration response")
+@strawberry.type(description="Successful Login response")
 class LoginUserSuccess(AuthBaseSuccess):
     pass
 
@@ -69,3 +68,17 @@ class GetCurrentUserResponse(BaseResponse[GetCurrentUserSuccess,GetCurrentUserEr
     data: Optional[GetCurrentUserSuccess] = strawberry.field(default=None)
     errors: Optional[List[GetCurrentUserError]] = strawberry.field(default=None, description="List of errors, if any")
     statusCode:int = strawberry.field(description="HTTP code")
+    
+@strawberry.type(description="Successful registration response")
+class GoogleLoginSuccess(AuthBaseSuccess):
+    pass
+
+@strawberry.type
+class GoogleLoginError(AuthBaseError):
+    pass
+
+@strawberry.type(description="Response wrapper for user login")
+class GoogleLoginResponse(BaseResponse[GoogleLoginSuccess,GoogleLoginError]):
+    data: Optional[GoogleLoginSuccess] = strawberry.field(default=None, description="Registration result on success")
+    errors: Optional[List[GoogleLoginError]] = strawberry.field(default=None, description="List of errors, if any")
+    
