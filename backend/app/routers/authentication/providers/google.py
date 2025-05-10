@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from fastapi.responses import RedirectResponse
 from ....utils.oauth import oauth, callback_handler
 
@@ -19,8 +19,13 @@ async def callback(request:Request):
         resp = await oauth.google.get('userinfo', token=token)
         user_info = resp.json()      
         
-        callback_handler(callback_token=token, user_info=user_info)
-        return RedirectResponse("/")
+        login_token = callback_handler(callback_token=token, user_info=user_info)
+        
+        response = RedirectResponse("/")
+        response.set_cookie("access_token", login_token, httponly=True)
+        
+        
     except Exception as err:
         print(err)
-        return {"message":"Internal Server Errors"}
+        response = RedirectResponse("/auth/google/login")
+    return response

@@ -80,6 +80,7 @@ class AuthMutation:
        
 
         except Exception as e:
+            print(e)
             return RegisterUserResponse(statusCode=500, errors=[RegisterUserError(message="Something went wrong")])
         
     @strawberry.mutation
@@ -90,11 +91,14 @@ class AuthMutation:
         if not user :
             return LoginUserResponse(errors=[LoginUserError(message="User does not exist")], statusCode=401)
         
+        if user.password == None:
+            return LoginUserResponse(errors=[LoginUserError(message="User already registered with providers")], statusCode=400)
+        
         password_matched = AuthHandler.verify_password(hashed_password=user.password, password=input.password)
         if not password_matched:
             return LoginUserResponse(errors=[LoginUserError(message="Invalid credential")], statusCode=401)
         
-        if not user.is_verified:
+        if not user.email_verified:
             return LoginUserResponse(errors=[LoginUserError(message="Please verify your email account before continue")], statusCode=401)
         token = JWTHandler.create_login_token(id=user.id)
         success_data = LoginUserSuccess(

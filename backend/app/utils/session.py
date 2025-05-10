@@ -2,7 +2,8 @@ import redis
 from ..config.redis import redis_config
 from .handler import JWTHandler, DatabaseHandler
 from . import db
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Request
+
 
 
 def get_redis():
@@ -10,6 +11,9 @@ def get_redis():
     return redis.Redis(connection_pool=connection_pool)
 
 def get_current_user(token:str=None):
+    # if not token:
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token")
+    
     session = db.get_session()
     
     decoded_token = JWTHandler.verify_login_token(token)
@@ -22,4 +26,16 @@ def get_current_user(token:str=None):
     #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not verified")
     
     return user
+
+def verify_login(request:Request):
+    token = request.cookies.get("access_token")
+    decoded_token = JWTHandler.verify_login_token(token=token)
+    if not decoded_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token")
     
+
+def verify_not_login(request:Request):
+    token = request.cookies.get("access_token")
+    decoded_token = JWTHandler.verify_login_token(token=token)
+    if decoded_token:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Already logged in")

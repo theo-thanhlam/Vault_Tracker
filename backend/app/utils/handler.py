@@ -1,7 +1,7 @@
 import bcrypt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
-from ..models import UserModel, TokenModel, ExpenseModel
+from ..models import UserModel, TokenModel, ExpenseModel,TokenType
 import jwt
 import os
 import datetime
@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import re
 from functools import wraps
 from strawberry.types import Info
+from fastapi import HTTPException
 load_dotenv()
 
 class AuthHandler:
@@ -42,6 +43,35 @@ class AuthHandler:
         _strong_password_regex = r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"
         return re.fullmatch(_strong_password_regex, password) 
     
+    @staticmethod
+    def verify_email(token:str):
+        try:
+            # Check if register token exists in database
+            session = db.get_session()
+            token_existed = session.get(TokenModel, token)
+            if not token_existed:
+                return {"message":"Invalid Token"}
+            
+            #Check valid token
+            decoded_token=JWTHandler.verify_signup_token(token=token)
+            if not decoded_token:
+                return {"message":"Invalid token"}
+            
+            user_id = decoded_token.get("id")
+            user = session.query(UserModel).filter(UserModel.id == user_id).first()
+
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+            if user.email_verified:
+                return {"message": "User already verified"}
+
+            user.email_verified = True
+            session.commit()
+
+            return {"message": "Email verified successfully"}
+        except Exception as e:
+            pass
     
     
     
@@ -97,7 +127,7 @@ class JWTHandler:
         }
         token = jwt.encode(payload, key=cls._SIGNUP_SECRET, algorithm="HS256")
         
-        cls._session.add(TokenModel(token=token))
+        cls._session.add(TokenModel(token=token, type=TokenType.REGISTER))
         cls._session.commit()
         return token
     
@@ -108,19 +138,21 @@ class JWTHandler:
             "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
         }
         token = jwt.encode(payload, key=cls._LOGIN_SECRET,algorithm="HS256")
-        # cls._session.add(TokenModel(token=token))
-        # cls._session.commit()
+        cls._session.add(TokenModel(token=token, type=TokenType.LOGIN))
+        cls._session.commit()
         return token
     
     @classmethod
-    def verify_signup_token(cls, token:str) -> dict:
-        payload = jwt.decode(token,key=cls._SIGNUP_SECRET,algorithms="HS256")
-        return payload
+    def verify_signup_token(cls, token:str) -> dict | None:
+        if token:
+            payload = jwt.decode(token,key=cls._SIGNUP_SECRET,algorithms="HS256")
+            return payload
     
     @classmethod
-    def verify_login_token(cls, token:str):
-        payload = jwt.decode(token,key=cls._LOGIN_SECRET,algorithms="HS256")
-        return payload
+    def verify_login_token(cls, token:str) -> dict | None:
+        if token:
+            payload = jwt.decode(token,key=cls._LOGIN_SECRET,algorithms="HS256")
+            return payload
     
 class EmailHandler:
     smtp_config = {
@@ -132,7 +164,7 @@ class EmailHandler:
     }
     _API_URL = os.getenv("API_URL")
     
-    verify_endpoint = f"{_API_URL}/verify-email"
+    verify_endpoint = f"{_API_URL}/auth/verify-email"
     
     
     @classmethod
@@ -160,7 +192,7 @@ def login_required(resolver):
         user = info.context.get("user")
         if not user:
             raise HTTPException(detail="Please login before proceed",status_code=401)
-        if not user.is_verified:
+        if not user.email_verified:
             raise HTTPException(detail="Your account is not verified",status_code=401)
         return resolver(*args, info=info, **kwargs)
     return wrapper
