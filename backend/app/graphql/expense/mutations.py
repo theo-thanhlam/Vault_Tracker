@@ -38,8 +38,11 @@ class ExpenseMutation:
         session = db.get_session()
         user:UserModel = info.context.get("user")
         
-        new_expense = ExpenseModel(amount = input.amount, description = input.description, category = input.category, expense_date = input.expense_date, user_id = user.id)
-        DatabaseHandler.create_new_expense(session=session, expense_doc=new_expense)
+        try:
+            new_expense = ExpenseModel(amount = input.amount, description = input.description, category = input.category, expense_date = input.expense_date, user_id = user.id)
+            DatabaseHandler.create_new_expense(session=session, expense_doc=new_expense)
+        except Exception as e:
+            return CreateExpenseResponse(statusCode=500, error="Error when creating new expense")
         
         return CreateExpenseResponse(statusCode=200, data="Created new expense Successfully")
     

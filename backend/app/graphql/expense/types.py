@@ -2,7 +2,7 @@ import strawberry
 from ..baseType import BaseType,BaseResponse
 from datetime import datetime
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 
 @strawberry.type
 class ExpenseType(BaseType):
@@ -23,3 +23,7 @@ class DeleteExpenseResponse(BaseResponse[str,str]):
 @strawberry.type
 class UpdateExpenseResponse(BaseResponse[str,str]):
     pass
+
+@strawberry.type
+class GetExpensesResponse:
+    expenses: List[ExpenseType]

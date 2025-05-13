@@ -52,26 +52,26 @@ class AuthHandler:
             session = db.get_session()
             token_existed = session.get(TokenModel, token)
             if not token_existed:
-                return {"message":"Invalid Token"}
+                return {"message":"Invalid Token", "status_code": 401}
             
             #Check valid token
             decoded_token=JWTHandler.verify_signup_token(token=token)
             if not decoded_token:
-                return {"message":"Invalid token"}
+                return {"message":"Invalid token", "status_code":401}
             
             user_id = decoded_token.get("id")
             user = session.query(UserModel).filter(UserModel.id == user_id).first()
 
             if not user:
-                raise HTTPException(status_code=404, detail="User not found")
+                return {"message":"User does not exist", "status_code":400}
 
             if user.email_verified:
-                return {"message": "User already verified"}
+                return {"message": "User already verified", "status_code":403}
 
             user.email_verified = True
             session.commit()
 
-            return {"message": "Email verified successfully"}
+            return {"message": "Email verified successfully", "status_code":401}
         except Exception as e:
             pass
         
@@ -115,12 +115,17 @@ class DatabaseHandler:
             session.refresh(expense_doc)
         except Exception as e:
             print("CREATE EXPENSE ERROR")
-            return
+            print(e)
+            raise 
     
     @staticmethod
     def get_expense_by_id(session:Session, id:str):
         return session.query(ExpenseModel).filter_by(id=id).first()
     
+    @staticmethod
+    def get_all_expenses_by_user_id(session:Session, user_id:UUID):
+        return session.query(ExpenseModel).filter_by(user_id=user_id).all()
+        
     
     
 class JWTHandler:
