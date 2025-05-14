@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 
 class AuthProviderName(str,PyEnum):
     GOOGLE = "google"
-    pass
+    
 
 
 class AuthProviderModel(Base):
@@ -17,11 +17,6 @@ class AuthProviderModel(Base):
     user_id = Column(UUID, ForeignKey("users.id"), nullable=False)
     name = Column(Enum(AuthProviderName))
     
-    # user = relationship(
-    #     "UserModel",
-    #     back_populates="auth_provider_account",
-    #     foreign_keys=[user_id]
-    # )
 
     users_with_this_provider = relationship(
         "UserModel",

@@ -26,4 +26,4 @@ class UserModel(BaseModel):
         foreign_keys=[auth_provider_id]
     )
 
-    expenses = relationship("ExpenseModel",back_populates="user", cascade="all, delete-orphan")
+    transactions = relationship("TransactionModel",back_populates="user", cascade="all, delete-orphan")

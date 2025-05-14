@@ -11,12 +11,12 @@ class UserQueryInput:
 @strawberry.type
 class AuthQuery:
     @strawberry.field
-    def getCurrentUser(self, info:Info) -> GetCurrentUserResponse:
+    def getCurrentUser(self, info:Info) -> UserType:
         
         user = info.context.get("user")
         
         if not user:
-            return GetCurrentUserResponse(errors=[GetCurrentUserError(message="Not Authenticated")], statusCode=401)
-        user_doc = UserType(id=user.id, firstName = user.firstName, lastName = user.lastName, expenses = user.expenses, created_at=user.created_at, email=user.email)
-        return GetCurrentUserResponse(data=user_doc,statusCode=200)
+            raise AuthError(message="Unauthorized user", code = status.HTTP_401_UNAUTHORIZED)
+        
+        return UserType(id=user.id, firstName = user.firstName, lastName = user.lastName, transactions = user.transactions, created_at=user.created_at, email=user.email)
         

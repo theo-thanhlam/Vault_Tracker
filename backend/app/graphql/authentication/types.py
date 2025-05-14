@@ -1,13 +1,11 @@
-from uuid import UUID
-from ..expense.types import ExpenseType
+
+from ..transaction.types import TransactionType
 from ..baseType import *
 
-from typing import List, TypeVar
+from typing import List
 import strawberry
-from datetime import datetime
-from typing import Optional,List
-
-T = TypeVar("T")
+from strawberry.exceptions import StrawberryGraphQLError
+from fastapi import status
 
 
 @strawberry.type
@@ -16,69 +14,16 @@ class UserType(BaseType):
     firstName:str 
     lastName:str
     email:str
-    expenses: List[ExpenseType]
-
-@strawberry.type(description="Generic response wrapper")
-class AuthBaseSuccess:
-    token: Optional[str] = strawberry.field(description="Authentication Token")
-
-@strawberry.type(description="Generic response wrapper")
-class AuthBaseError:
-    message: Optional[str] = strawberry.field(description="Error message")
+    transactions: List[TransactionType]
     
-@strawberry.type(description="Successful registration response")
-class RegisterUserSuccess(AuthBaseSuccess):
-    created_at: Optional[datetime] = strawberry.field(description="Datetime the user account was created")
-
+    
 @strawberry.type
-class RegisterUserError(AuthBaseError):
-    pass
+class AuthSucess(BaseResponse):
+    token: str = strawberry.field(description="Authentication token")
 
-@strawberry.type(description="Response wrapper for user registration.")
-class RegisterUserResponse(BaseResponse[RegisterUserSuccess, RegisterUserError]):
-    data: Optional[RegisterUserSuccess] = strawberry.field(default=None, description="Registration result on success")
-    errors: Optional[List[RegisterUserError]]= strawberry.field(default=None, description="List of errors, if any")
-    statusCode:int = strawberry.field(description="HTTP code")
+
+class AuthError(BaseError):
+    pass
+   
     
-@strawberry.type(description="Successful Login response")
-class LoginUserSuccess(AuthBaseSuccess):
-    pass
 
-@strawberry.type
-class LoginUserError(AuthBaseError):
-    pass
-
-@strawberry.type(description="Response wrapper for user login")
-class LoginUserResponse(BaseResponse[LoginUserSuccess,LoginUserError]):
-    data: Optional[LoginUserSuccess] = strawberry.field(default=None, description="Registration result on success")
-    errors: Optional[List[LoginUserError]] = strawberry.field(default=None, description="List of errors, if any")
-    statusCode:int = strawberry.field(description="HTTP code")
-    
-    
-@strawberry.type(description="")
-class GetCurrentUserSuccess(UserType):
-    pass
-
-@strawberry.type
-class GetCurrentUserError(AuthBaseError):
-    pass   
-
-@strawberry.type
-class GetCurrentUserResponse(BaseResponse[GetCurrentUserSuccess,GetCurrentUserError]):
-    data: Optional[GetCurrentUserSuccess] = strawberry.field(default=None)
-    errors: Optional[List[GetCurrentUserError]] = strawberry.field(default=None, description="List of errors, if any")
-    statusCode:int = strawberry.field(description="HTTP code")
-    
-@strawberry.type(description="Successful registration response")
-class GoogleLoginSuccess(AuthBaseSuccess):
-    pass
-
-@strawberry.type
-class GoogleLoginError(AuthBaseError):
-    pass
-
-@strawberry.type(description="Response wrapper for user login")
-class GoogleLoginResponse(BaseResponse[GoogleLoginSuccess,GoogleLoginError]):
-    data: Optional[GoogleLoginSuccess] = strawberry.field(default=None, description="Registration result on success")
-    errors: Optional[List[GoogleLoginError]] = strawberry.field(default=None, description="List of errors, if any")
-    

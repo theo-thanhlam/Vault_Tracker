@@ -1,7 +1,7 @@
 import bcrypt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
-from ..models import UserModel, TokenModel, ExpenseModel,TokenType
+from ..models import UserModel, TokenModel, TransactionModel,TokenType
 import jwt
 import os
 import datetime
@@ -71,7 +71,7 @@ class AuthHandler:
             user.email_verified = True
             session.commit()
 
-            return {"message": "Email verified successfully", "status_code":401}
+            return {"message": "Email verified successfully", "status_code":200}
         except Exception as e:
             pass
         
@@ -108,23 +108,23 @@ class DatabaseHandler:
         return session.get(UserModel,id)
 
     @staticmethod
-    def create_new_expense(session:Session, expense_doc:ExpenseModel):
+    def create_new_transaction(session:Session, transaction_doc:TransactionModel):
         try:
-            session.add(expense_doc)
+            session.add(transaction_doc)
             session.commit()
-            session.refresh(expense_doc)
+            session.refresh(transaction_doc)
         except Exception as e:
             print("CREATE EXPENSE ERROR")
             print(e)
             raise 
     
     @staticmethod
-    def get_expense_by_id(session:Session, id:str):
-        return session.query(ExpenseModel).filter_by(id=id).first()
+    def get_transaction_by_id(session:Session, id:str):
+        return session.query(TransactionModel).filter_by(id=id).first()
     
     @staticmethod
-    def get_all_expenses_by_user_id(session:Session, user_id:UUID):
-        return session.query(ExpenseModel).filter_by(user_id=user_id).all()
+    def get_all_transactions_by_user_id(session:Session, user_id:UUID):
+        return session.query(TransactionModel).filter_by(user_id=user_id).all()
         
     
     

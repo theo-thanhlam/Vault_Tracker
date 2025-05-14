@@ -2,11 +2,11 @@ import strawberry
 from uuid import UUID
 from datetime import datetime
 
-from typing import Optional, Generic, TypeVar
 
-# Define generic types
-TData = TypeVar("TData")
-TError = TypeVar("TErrors")
+from strawberry.exceptions import StrawberryGraphQLError
+from fastapi import status
+
+
 
 @strawberry.type
 class BaseType:
@@ -15,8 +15,17 @@ class BaseType:
     updated_at:datetime |None = None
     deleted_at:datetime |None = None
     
-@strawberry.type(description="Generic response wrapper")
-class BaseResponse(Generic[TData, TError]):
-    data: Optional[TData] = strawberry.field(default=None, description="Response payload")
-    error: Optional[TError] = strawberry.field(default=None, description="Errors if any")
-    statusCode: int = strawberry.field(description="HTTP status code")
+class BaseError(StrawberryGraphQLError):
+    def __init__(self, message:str, code:status, detail:str=None):
+        super().__init__(
+            
+            message=message, 
+            extensions={
+                "statusCode":code,
+                "detail":detail
+            }
+        )
+@strawberry.type
+class BaseResponse:
+    message: str = strawberry.field( description="Success message")
+    code: int = strawberry.field(description="HTTP status code")

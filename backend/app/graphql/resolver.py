@@ -1,9 +1,9 @@
 from .authentication.resolvers import AuthQuery
-from .expense.resolvers import ExpenseQuery
+from .transaction.resolvers import TransactionQuery
 import strawberry
 
 
 
 @strawberry.type
-class ProtectedQuery( ExpenseQuery):
+class ProtectedQuery( TransactionQuery):
     pass

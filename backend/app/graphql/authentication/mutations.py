@@ -7,6 +7,7 @@ from ...utils.handler import *
 
 from fastapi import   Response
 from strawberry.types import Info
+from strawberry.scalars import JSON
 
 
 
@@ -45,89 +46,89 @@ class AuthMutation:
     @strawberry.mutation( description="Register a new user. Takes user input (first name, last name, email, password), "
                     "creates a new user in the database, and sends a verification email with a token link"
     )
-    def register(self, input: RegisterInput) -> RegisterUserResponse:
+    def register(self, input: RegisterInput) -> AuthSucess:
         session = db.get_session()
 
-        try:
-            # Validate input
-            validate_errors = validate_register_input(input)
+        
+        # Validate input
+        validate_errors = validate_register_input(input)
 
-            if validate_errors:
-                return RegisterUserResponse(errors=[RegisterUserError(message=error) for error in validate_errors] , statusCode=409)
-            
-            # Check for existing user
-            existing_user = DatabaseHandler.get_user_by_email(session, input.email)
-            if existing_user:
-                return RegisterUserResponse(errors=[RegisterUserError(message="Existing email")], statusCode=409)
+        if validate_errors:
+            # return RegisterUserResponse(errors=[RegisterUserError(message=error) for error in validate_errors] , statusCode=409)
+            raise AuthError(message="Email or password is not valid", code=status.HTTP_400_BAD_REQUEST, detail="Make sure your email is valid and your password is strong and at least 12 characters")
+        
+        # Check for existing user
+        existing_user = DatabaseHandler.get_user_by_email(session, input.email)
+        if existing_user:
+            # return RegisterUserResponse(errors=[RegisterUserError(message="Existing email")], statusCode=409)
+            raise AuthError(message="Existing email", code=status.HTTP_409_CONFLICT)
 
-            # Create new user
-            hashed_password = AuthHandler.hash_password(input.password)
-            new_user = UserModel(
-                firstName=input.firstName,
-                lastName=input.lastName,
-                email=input.email,
-                password=hashed_password
-            )
+        # Create new user
+        hashed_password = AuthHandler.hash_password(input.password)
+        new_user = UserModel(
+            firstName=input.firstName,
+            lastName=input.lastName,
+            email=input.email,
+            password=hashed_password
+        )
 
-            DatabaseHandler.create_new_user(session, new_user)
+        DatabaseHandler.create_new_user(session, new_user)
 
-            # Send email
-            token = JWTHandler.create_signup_token(new_user.id)
-            EmailHandler.send_verification_email(token=token, user_email=new_user.email)
+        # Send email
+        register_token = JWTHandler.create_signup_token(new_user.id)
+        EmailHandler.send_verification_email(token=register_token, user_email=new_user.email)
 
-            success_data = RegisterUserSuccess(
-                token=token,
-                created_at=new_user.created_at,
-            )
-            return RegisterUserResponse(data=success_data,statusCode=200)
+        
+        return AuthSucess(token=register_token,code=status.HTTP_201_CREATED, message="Created user successfully")
 
        
 
-        except Exception as e:
-            print(e)
-            return RegisterUserResponse(statusCode=500, errors=[RegisterUserError(message="Something went wrong")])
+        
         
     @strawberry.mutation
-    def login(self, input:LoginInput, info:Info) -> LoginUserResponse:
+    def login(self, input:LoginInput, info:Info) -> AuthSucess:
         if info.context.get("user"):
-            return LoginUserResponse(errors=[LoginUserError(message="Already Logged in")], statusCode=403)
+            raise AuthError(message="This email already logged in", code=status.HTTP_400_BAD_REQUEST)
+            # return LoginUserResponse(errors=[LoginUserError(message="Already Logged in")], statusCode=403)
         session = db.get_session()
         user = DatabaseHandler.get_user_by_email(session=session, email=input.email)
         
         if not user :
-            return LoginUserResponse(errors=[LoginUserError(message="User does not exist")], statusCode=401)
+            raise AuthError(message="User does not exist", code=status.HTTP_404_NOT_FOUND)
         
         if user.password == None:
-            return LoginUserResponse(errors=[LoginUserError(message="User already registered with other provider")], statusCode=400)
+            raise AuthError(message="User already registered with another provider", code=status.HTTP_409_CONFLICT, detail="Please sign in using the provider")
         
         password_matched = AuthHandler.verify_password(hashed_password=user.password, password=input.password)
         if not password_matched:
-            return LoginUserResponse(errors=[LoginUserError(message="Invalid credential")], statusCode=401)
+            # return LoginUserResponse(errors=[LoginUserError(message="Invalid credential")], statusCode=401)
+            raise AuthError(message="Email or password does not match", code=status.HTTP_401_UNAUTHORIZED)
         
         if not user.email_verified:
-            return LoginUserResponse(errors=[LoginUserError(message="Please verify your email account before continue")], statusCode=401)
-        token = JWTHandler.create_login_token(id=user.id)
-        success_data = LoginUserSuccess(
-            token=token
-        )
+            # return LoginUserResponse(errors=[LoginUserError(message="Please verify your email account before continue")], statusCode=401)
+            raise AuthError(message="Please verify your email account before continuing", code=403, detail="Check you email inbox to confirm your email address")
+        login_token = JWTHandler.create_login_token(id=user.id)
+        
         
         #Send login cookies to user (HTTP Only)
         response:Response = info.context["response"]
-        response.set_cookie("access_token", token, httponly=True)
+        response.set_cookie("access_token", login_token, httponly=True)
 
-        return LoginUserResponse(data=success_data, statusCode=200)
+        return AuthSucess(token=login_token, message="Logged in successfully", code=status.HTTP_200_OK)
     
     @strawberry.mutation
-    async def googleLogin(self, input:GoogleLoginInput, info:Info) ->GoogleLoginResponse:
+    async def googleLogin(self, input:GoogleLoginInput, info:Info) ->AuthSucess:
+        
         if info.context.get("user"):
-            return LoginUserResponse(errors=[LoginUserError(message="Already Logged in")], statusCode=403)
+            raise AuthError(message="This email already logged in", code=status.HTTP_400_BAD_REQUEST)
+        
         session = db.get_session()
         google_idInfo = await AuthHandler.verify_google_token(input.idToken)
         payload = {
             'firstName':google_idInfo.get("given_name"),
             'lastName':google_idInfo.get("family_name"),
-            'id':google_idInfo.get("id"),
-            "email_verified":google_idInfo.get("verified_email"),
+            'id':google_idInfo.get("sub"),
+            "email_verified":google_idInfo.get("email_verified"),
             'email':google_idInfo.get("email")
          }
         user = None
@@ -158,13 +159,9 @@ class AuthMutation:
             user = new_user
         
         login_token = JWTHandler.create_login_token(user.id)
-        
-        
-        
-        success_data = GoogleLoginSuccess(token=login_token)
         response:Response = info.context["response"]
         response.set_cookie("access_token", login_token, httponly=True)
-        return GoogleLoginResponse(data=success_data,statusCode=200)
+        return AuthSucess(token=login_token, message="Logged in successfully", code=status.HTTP_200_OK)
     
     @strawberry.mutation
     @login_required
