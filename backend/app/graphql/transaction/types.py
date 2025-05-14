@@ -11,14 +11,17 @@ class TransactionType(BaseType):
     amount:float
     description:str
     category:str
-    transaction_date:datetime 
+    date:datetime 
+    type:str
     user_id:UUID
     
 
 @strawberry.type
-class GetTransactionsResponse(BaseResponse):
+class GetAllTransactionResponse(BaseResponse):
     transactions: List[TransactionType]
-    
+
+
+       
     
 @strawberry.type
 class TransactionOperationSuccess(BaseResponse):

@@ -12,19 +12,19 @@ from strawberry.scalars import JSON
 
 
 @strawberry.input(description="Input data required to register a new user")
-class RegisterInput:
+class RegisterInput(BaseInput):
     firstName: str 
     lastName: str 
     email: str 
     password: str 
     
 @strawberry.input(description="Input data required to login")
-class LoginInput:
+class LoginInput(BaseInput):
     email: str 
     password: str
     
 @strawberry.input(description="Google login")
-class GoogleLoginInput:
+class GoogleLoginInput(BaseInput):
     idToken:str
 
 def validate_register_input(input:RegisterInput) -> str|None: 

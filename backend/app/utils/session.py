@@ -23,7 +23,7 @@ def verify_login(request:Request):
     token = request.cookies.get("access_token")
     decoded_token = JWTHandler.verify_login_token(token=token)
     if not decoded_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Please login before proceed")
     
 
 def verify_not_login(request:Request):

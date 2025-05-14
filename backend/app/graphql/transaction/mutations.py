@@ -10,9 +10,10 @@ from ...models import UserModel,TransactionModel
 from ...models.transaction import transaction_type_list
 from sqlalchemy import sql
 from typing import Union
+from ..baseType import BaseInput
 
 @strawberry.input
-class CreateTransactionInput:
+class CreateTransactionInput(BaseInput):
     amount:float
     description:str
     category:str
@@ -20,16 +21,17 @@ class CreateTransactionInput:
     type:str
     
 @strawberry.input
-class DeleteTransactionInput:
+class DeleteTransactionInput(BaseInput):
     id:UUID
 
 @strawberry.input
-class UpdateTransactionInput:
+class UpdateTransactionInput(BaseInput):
     id:UUID 
     amount:Optional[float] = None
     description:Optional[str] = None
     category:Optional[str] = None
-    transaction_date:Optional[datetime.datetime] =None
+    date:Optional[datetime.datetime] =None
+    type:Optional[str] = None
     
 
 def validate_create_input(input:CreateTransactionInput):
@@ -37,6 +39,15 @@ def validate_create_input(input:CreateTransactionInput):
     if input.type not in transaction_type_list:
         errors.append("Type must be 'income', 'expense' or 'other' ")
     return errors
+
+def update_existing_transaction(existing_transaction:TransactionModel,input:UpdateTransactionInput)->TransactionModel:
+    parsed_input = input.parse()
+    
+    for k,v in parsed_input.items():
+        if v is not None:
+            setattr(existing_transaction, k, v)
+    existing_transaction.updated_at = sql.func.now()
+    return existing_transaction
 
 @strawberry.type
 class TransactionMutation:
@@ -52,12 +63,11 @@ class TransactionMutation:
         if errors:
             # return CreateTransactionResponse(statusCode=400, errors=errors)
             raise TransactionOperationError(code=status.HTTP_400_BAD_REQUEST, message="Invalid input")
-        
-        new_transaction = TransactionModel(amount = input.amount, description = input.description, category = input.category, date = input.date, user_id = user.id, type=input.type)
+        parsed_input = input.parse()
+        new_transaction = TransactionModel(user_id = user.id, **parsed_input)
         DatabaseHandler.create_new_transaction(session=session, transaction_doc=new_transaction)
         
-        
-        return TransactionType(new_transaction)
+        return TransactionType(**new_transaction.to_dict())
     
     @strawberry.mutation
     @login_required
@@ -81,7 +91,7 @@ class TransactionMutation:
     
     @strawberry.mutation
     @login_required
-    def updateTransaction(self,input:UpdateTransactionInput, info:Info)->TransactionOperationSuccess:
+    def updateTransaction(self,input:UpdateTransactionInput, info:Info)->TransactionType:
         session = db.get_session()
         user:UserModel = info.context.get("user")
         existing_transaction = DatabaseHandler.get_transaction_by_id(session, input.id)
@@ -91,20 +101,12 @@ class TransactionMutation:
             raise TransactionOperationError(message="Unauthorized", code = status.HTTP_401_UNAUTHORIZED, detail="You are not the person who creates this transaction")
         
         if not existing_transaction or existing_transaction.deleted_at:
-            raise TransactionOperationError(message="This transaction does not exist", code = status.HTTP_404_NOT_FOUND)
+            raise TransactionOperationError(message="Not found", code = status.HTTP_404_NOT_FOUND, detail="This transaction does not exist")
         
-        if existing_transaction.amount:
-            existing_transaction.amount = input.amount
-        if existing_transaction.category:
-            existing_transaction.category = input.category
-        if existing_transaction.description:
-            existing_transaction.description = input.description
-        if existing_transaction.transaction_date:
-            existing_transaction.transaction_date = input.transaction_date
-            
-        existing_transaction.updated_at = sql.func.now()
+        
+        existing_transaction = update_existing_transaction(existing_transaction, input)
         session.commit()
-        return TransactionOperationSuccess(statusCode=200, data="Updated transaction Successfully")
+        return TransactionType(**existing_transaction.to_dict())
         
         
         

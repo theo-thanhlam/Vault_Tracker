@@ -21,7 +21,7 @@ def verify_email(token:str):
    
     status_code = result.get("status_code")
     message = result.get("message")
-    print(result)
+    
     if status_code == 400:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
     if status_code == 401:

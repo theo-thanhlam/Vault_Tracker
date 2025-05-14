@@ -1,10 +1,10 @@
 import strawberry
 from uuid import UUID
-from .types import TransactionType, GetTransactionsResponse
+from .types import TransactionType, GetAllTransactionResponse
 from ...utils import db
 from ...models import UserModel
 from ...utils.handler import DatabaseHandler
-from fastapi import HTTPException
+from fastapi import HTTPException,status
 from strawberry import Info
 
 
@@ -15,12 +15,16 @@ class GetTransactionInput:
 
 @strawberry.type
 class TransactionQuery:
-
-    
     @strawberry.field
-    def getTransactions(self, info:Info) -> GetTransactionsResponse:
+    def getTransactions(self, info:Info) -> GetAllTransactionResponse:
         user = info.context.get("user")
         session = db.get_session()
         user_transactions = DatabaseHandler.get_all_transactions_by_user_id(session=session, user_id=user.id)
-        return GetTransactionsResponse(transactions=user_transactions)
+        return GetAllTransactionResponse(transactions=user_transactions, message=f"Here are all {user.firstName} {user.lastName}'s transactions", code=status.HTTP_200_OK)
+    @strawberry.field
+    def getTransaction(self, input:GetTransactionInput, info:Info) -> TransactionType:
+        
+        session = db.get_session()
+        user_transactions = DatabaseHandler.get_transaction_by_id(session=session, id=input.transaction_id)
+        return TransactionType(user_transactions)
         

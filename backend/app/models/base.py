@@ -1,10 +1,14 @@
 from sqlalchemy import Column, DateTime, UUID,sql, String
 import uuid
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.inspection import inspect
 
 
 class Base(DeclarativeBase):
-    pass
+    def to_dict(self):
+        return {field.name:getattr(self, field.name) for field in self.__table__.c}
+
+        
 
 class BaseModel(Base):
     __abstract__ = True
