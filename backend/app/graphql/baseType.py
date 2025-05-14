@@ -6,6 +6,8 @@ from datetime import datetime
 from strawberry.exceptions import StrawberryGraphQLError
 from fastapi import status
 from typing import Any
+from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyMapper
+
 
 
 
@@ -35,6 +37,7 @@ class BaseResponse:
 
 @strawberry.input
 class BaseInput:
-    def parse(self)->dict[str, Any]:
+    def to_dict(self)->dict[str, Any]:
         return strawberry.asdict(self)
     
+strawberry_sqlalchemy_mapper = StrawberrySQLAlchemyMapper()

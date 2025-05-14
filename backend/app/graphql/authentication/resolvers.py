@@ -17,6 +17,7 @@ class AuthQuery:
         
         if not user:
             raise AuthError(message="Unauthorized user", code = status.HTTP_401_UNAUTHORIZED)
+        user_dict = {k:v for k,v in user.to_dict().items() if k != 'password'}
         
-        return UserType(id=user.id, firstName = user.firstName, lastName = user.lastName, transactions = user.transactions, created_at=user.created_at, email=user.email)
+        return UserType(**user_dict)
         

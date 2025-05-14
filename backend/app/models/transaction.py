@@ -6,12 +6,12 @@ from enum import Enum as PyEnum
 
 
 
-class TransactionType(str,PyEnum):
+class TransactionTypeEnum(str,PyEnum):
     INCOME = 'income'
     EXPENSE = 'expense'
     OTHER = 'other'
 
-transaction_type_list = [t.value for t in TransactionType]
+transaction_type_list = [t.value for t in TransactionTypeEnum]
 
 
 class TransactionModel(BaseModel):
@@ -19,9 +19,11 @@ class TransactionModel(BaseModel):
 
     amount = Column(Float, nullable=False)
     description = Column(String(200))
-    category = Column(String(50))
+    category_id = Column(UUID, ForeignKey("categories.id"))
     date = Column(DateTime, default=sql.func.now())
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
-    type = Column(Enum(TransactionType))
+    type = Column(Enum(TransactionTypeEnum))
     
-    user = relationship("UserModel", back_populates="transactions")
+    transaction_user_relationship = relationship("UserModel", back_populates="user_transaction_relationship")
+    transaction_category_relationship = relationship("CategoryModel", back_populates="category_transaction_relationship")
+    

@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Enum,Boolean,ForeignKey
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 
-class UserRole(str, PyEnum):
+class UserRoleEnum(str, PyEnum):
     USER = "user"
     MANAGER = "manager"
     ADMIN = "admin"
@@ -15,7 +15,7 @@ class UserModel(BaseModel):
     lastName = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=True)
-    role = Column(Enum(UserRole), default=UserRole.USER)
+    role = Column(Enum(UserRoleEnum), default=UserRoleEnum.USER)
     
     email_verified = Column(Boolean, default= False)
     auth_provider_id = Column(String, ForeignKey("auth_providers.id"), nullable=True)
@@ -26,4 +26,5 @@ class UserModel(BaseModel):
         foreign_keys=[auth_provider_id]
     )
 
-    transactions = relationship("TransactionModel",back_populates="user", cascade="all, delete-orphan")
+    user_transaction_relationship = relationship("TransactionModel",back_populates="transaction_user_relationship", cascade="all, delete-orphan")
+    user_categories_relationship = relationship("CategoryModel", back_populates="category_user_relationship", cascade="all, delete-orphan")

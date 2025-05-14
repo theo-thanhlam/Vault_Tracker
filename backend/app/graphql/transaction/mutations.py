@@ -7,7 +7,7 @@ from strawberry import Info
 from typing import Optional
 import datetime
 from ...models import UserModel,TransactionModel
-from ...models.transaction import transaction_type_list
+from ...models.transaction import transaction_type_list,TransactionTypeEnum
 from sqlalchemy import sql
 from typing import Union
 from ..baseType import BaseInput
@@ -16,9 +16,9 @@ from ..baseType import BaseInput
 class CreateTransactionInput(BaseInput):
     amount:float
     description:str
-    category:str
+    category_id:UUID
     date:Optional[datetime.datetime] = None
-    type:str
+    type:TransactionTypeEnum
     
 @strawberry.input
 class DeleteTransactionInput(BaseInput):
@@ -41,7 +41,7 @@ def validate_create_input(input:CreateTransactionInput):
     return errors
 
 def update_existing_transaction(existing_transaction:TransactionModel,input:UpdateTransactionInput)->TransactionModel:
-    parsed_input = input.parse()
+    parsed_input = input.to_dict()
     
     for k,v in parsed_input.items():
         if v is not None:
@@ -61,9 +61,8 @@ class TransactionMutation:
         #Validate input
         errors = validate_create_input(input)
         if errors:
-            # return CreateTransactionResponse(statusCode=400, errors=errors)
             raise TransactionOperationError(code=status.HTTP_400_BAD_REQUEST, message="Invalid input")
-        parsed_input = input.parse()
+        parsed_input = input.to_dict()
         new_transaction = TransactionModel(user_id = user.id, **parsed_input)
         DatabaseHandler.create_new_transaction(session=session, transaction_doc=new_transaction)
         
@@ -77,11 +76,9 @@ class TransactionMutation:
         existing_transaction = DatabaseHandler.get_transaction_by_id(session, input.id)
         
         if user.id != existing_transaction.user_id:
-            # return DeleteTransactionResponse(error="Unauthorized", statusCode=401)
             raise TransactionOperationError(message="Unauthorized", code = status.HTTP_401_UNAUTHORIZED, detail="You are not the person who creates this transaction")
         
         if not existing_transaction or existing_transaction.deleted_at:
-            # return DeleteTransactionResponse(error="This transaction does not exist", statusCode=404)
             raise TransactionOperationError(message="This transaction does not exist", code = status.HTTP_404_NOT_FOUND)
         
         existing_transaction.deleted_at = sql.func.now()

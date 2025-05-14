@@ -1,7 +1,7 @@
 import bcrypt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
-from ..models import UserModel, TokenModel, TransactionModel,TokenType
+from ..models import UserModel, TokenModel, TransactionModel,TokenTypeEnum
 import jwt
 import os
 import datetime
@@ -142,7 +142,7 @@ class JWTHandler:
         }
         token = jwt.encode(payload, key=cls._SIGNUP_SECRET, algorithm="HS256")
         
-        cls._session.add(TokenModel(token=token, type=TokenType.REGISTER))
+        cls._session.add(TokenModel(token=token, type=TokenTypeEnum.REGISTER))
         cls._session.commit()
         return token
     
@@ -153,7 +153,7 @@ class JWTHandler:
             "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
         }
         token = jwt.encode(payload, key=cls._LOGIN_SECRET,algorithm="HS256")
-        cls._session.add(TokenModel(token=token, type=TokenType.LOGIN))
+        cls._session.add(TokenModel(token=token, type=TokenTypeEnum.LOGIN))
         cls._session.commit()
         return token
     

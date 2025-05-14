@@ -1,18 +1,18 @@
 import strawberry
-import strawberry.exceptions
-from ..baseType import BaseType, BaseError,BaseResponse
+from ..baseType import *
 from datetime import datetime
 from uuid import UUID
-from typing import Optional, List
-from fastapi import status
+from typing import List
+from ...models import TransactionTypeEnum 
+
 
 @strawberry.type
 class TransactionType(BaseType):
     amount:float
     description:str
-    category:str
+    category_id:UUID
     date:datetime 
-    type:str
+    type:TransactionTypeEnum
     user_id:UUID
     
 

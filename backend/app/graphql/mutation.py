@@ -1,10 +1,10 @@
 import strawberry
-from .authentication.mutations import AuthMutation
 from .transaction.mutations import TransactionMutation
+from .category.mutations import CategoryMutation
 
 
 
 
 @strawberry.type
-class ProtectedMutation(TransactionMutation):
+class ProtectedMutation(TransactionMutation, CategoryMutation):
     pass

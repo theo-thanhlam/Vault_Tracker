@@ -12,3 +12,4 @@ authlib
 itsdangerous
 google-auth
 requests
+strawberry-sqlalchemy-mapper

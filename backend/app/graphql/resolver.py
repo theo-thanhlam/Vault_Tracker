@@ -1,9 +1,9 @@
-from .authentication.resolvers import AuthQuery
 from .transaction.resolvers import TransactionQuery
+from .category.resolvers import CategoryResolver
 import strawberry
 
 
 
 @strawberry.type
-class ProtectedQuery( TransactionQuery):
+class ProtectedQuery( TransactionQuery, CategoryResolver):
     pass

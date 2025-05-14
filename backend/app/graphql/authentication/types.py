@@ -4,17 +4,18 @@ from ..baseType import *
 
 from typing import List
 import strawberry
-from strawberry.exceptions import StrawberryGraphQLError
-from fastapi import status
+from ...models.user import UserRoleEnum
+from typing import Optional
 
 
 @strawberry.type
 class UserType(BaseType):
-
     firstName:str 
     lastName:str
     email:str
-    transactions: List[TransactionType]
+    role:UserRoleEnum
+    email_verified:bool
+    auth_provider_id:Optional[str] = None 
     
     
 @strawberry.type
