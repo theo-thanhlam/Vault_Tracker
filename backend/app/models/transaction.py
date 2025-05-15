@@ -22,7 +22,7 @@ class TransactionModel(BaseModel):
     category_id = Column(UUID, ForeignKey("categories.id"))
     date = Column(DateTime, default=sql.func.now())
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
-    type = Column(Enum(TransactionTypeEnum))
+    # type = Column(Enum(TransactionTypeEnum))
     
     transaction_user_relationship = relationship("UserModel", back_populates="user_transaction_relationship")
     transaction_category_relationship = relationship("CategoryModel", back_populates="category_transaction_relationship")

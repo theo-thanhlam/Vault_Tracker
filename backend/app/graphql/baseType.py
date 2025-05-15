@@ -34,6 +34,10 @@ class BaseError(StrawberryGraphQLError):
 class BaseResponse:
     message: str = strawberry.field( description="Success message")
     code: int = strawberry.field(description="HTTP status code")
+    
+@strawberry.interface
+class BaseSuccess(BaseResponse):
+    pass
 
 @strawberry.input
 class BaseInput:

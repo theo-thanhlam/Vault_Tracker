@@ -21,6 +21,7 @@ class CategoryModel(BaseModel):
     
     name = Column(String)
     type = Column(Enum(CategoryTypeEnum), default=CategoryTypeEnum.OTHER)
+    description = Column(String, nullable=True)
     user_id = Column(UUID, ForeignKey("users.id"),nullable=True)
     parent_id = Column(UUID, ForeignKey("categories.id"), nullable=True)
     

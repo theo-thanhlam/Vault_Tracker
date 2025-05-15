@@ -3,7 +3,7 @@ from ..baseType import *
 from datetime import datetime
 from uuid import UUID
 from typing import List
-from ...models import TransactionTypeEnum 
+from typing import Optional
 
 
 @strawberry.type
@@ -12,7 +12,7 @@ class TransactionType(BaseType):
     description:str
     category_id:UUID
     date:datetime 
-    type:TransactionTypeEnum
+    # type:TransactionTypeEnum
     user_id:UUID
     
 
@@ -24,8 +24,9 @@ class GetAllTransactionResponse(BaseResponse):
        
     
 @strawberry.type
-class TransactionOperationSuccess(BaseResponse):
-    pass
+class TransactionSuccess(BaseSuccess):
+    transaction:Optional[TransactionType] = None
+    
 
-class TransactionOperationError(BaseError):
+class TransactionError(BaseError):
    pass

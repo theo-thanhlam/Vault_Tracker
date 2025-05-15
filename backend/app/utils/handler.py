@@ -1,7 +1,7 @@
 import bcrypt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
-from ..models import UserModel, TokenModel, TransactionModel,TokenTypeEnum
+from ..models import *
 import jwt
 import os
 import datetime
@@ -125,7 +125,15 @@ class DatabaseHandler:
     @staticmethod
     def get_all_transactions_by_user_id(session:Session, user_id:UUID):
         return session.query(TransactionModel).filter_by(user_id=user_id).all()
-        
+    
+    @staticmethod
+    def create_category(session:Session, category_doc:CategoryModel):
+        try:
+            session.add(category_doc)
+            session.commit()
+            session.refresh(category_doc)
+        except Exception as e:
+            raise e
     
     
 class JWTHandler:

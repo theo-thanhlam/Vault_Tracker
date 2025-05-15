@@ -19,7 +19,7 @@ class UserType(BaseType):
     
     
 @strawberry.type
-class AuthSucess(BaseResponse):
+class AuthSucess(BaseSuccess):
     token: str = strawberry.field(description="Authentication token")
 
 
