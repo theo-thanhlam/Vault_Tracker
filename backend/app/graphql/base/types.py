@@ -6,7 +6,7 @@ from datetime import datetime
 from strawberry.exceptions import StrawberryGraphQLError
 from fastapi import status
 from typing import Any
-from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyMapper
+from typing import Optional
 
 
 
@@ -34,6 +34,7 @@ class BaseError(StrawberryGraphQLError):
 class BaseResponse:
     message: str = strawberry.field( description="Success message")
     code: int = strawberry.field(description="HTTP status code")
+    # data:Optional[BaseType] =  strawberry.field(default=None,description="new data from success" )
     
 @strawberry.interface
 class BaseSuccess(BaseResponse):
@@ -44,4 +45,3 @@ class BaseInput:
     def to_dict(self)->dict[str, Any]:
         return strawberry.asdict(self)
     
-strawberry_sqlalchemy_mapper = StrawberrySQLAlchemyMapper()

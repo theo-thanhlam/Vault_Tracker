@@ -1,15 +1,18 @@
 
 import strawberry
-from ..baseType import BaseInput
+from ..base.types import BaseInput
 from ...models import *
 from uuid import UUID
 from typing import Optional
 from strawberry import Info
 from .types import *
 from ...utils import db
-from ...utils.handler import DatabaseHandler
-from fastapi import status
 from sqlalchemy import sql
+from ..base.mutations import BaseMutation
+from ...utils.handler import *
+from fastapi import status
+from uuid import UUID
+
 
 @strawberry.input
 class CreateCategoryInput(BaseInput):
@@ -44,7 +47,7 @@ def update_existing_category(existing_category:CategoryModel,input:UpdateCategor
 class CategoryMutation:
     
     @strawberry.mutation
-    def createCategory(self, input:CreateCategoryInput,info:Info) -> CategorySuccess:
+    def create(self, input:CreateCategoryInput,info:Info) -> CategorySuccess:
         session =db.get_session()
         parsed_input = input.to_dict()
         user = info.context.get("user")
@@ -58,7 +61,7 @@ class CategoryMutation:
         return CategorySuccess(**success_data)
     
     @strawberry.mutation
-    def updateCategory(self, input:UpdateCategoryInput, info:Info) -> CategorySuccess:
+    def update(self, input:UpdateCategoryInput, info:Info) -> CategorySuccess:
         session =db.get_session()
         parsed_input = input.to_dict()
         user = info.context.get("user")
@@ -81,7 +84,7 @@ class CategoryMutation:
         return CategorySuccess(**success_data)
     
     @strawberry.mutation
-    def deleteCategory(self,input:DeleteCategoryInput, info:Info)->CategorySuccess:
+    def delete(self,input:DeleteCategoryInput, info:Info)->CategorySuccess:
         session = db.get_session()
         user:UserModel = info.context.get("user")
         existing_category = session.get(CategoryModel, input.id)
@@ -93,8 +96,8 @@ class CategoryMutation:
         
         existing_category.deleted_at = sql.func.now()
         session.commit()
-        return CategorySuccess(message="Deleted transaction successfully", code=status.HTTP_200_OK)
+        return CategorySuccess(message="Deleted transaction successfully", code=status.HTTP_204_NO_CONTENT)
 
-        
-        
+
+
     

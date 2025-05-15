@@ -1,5 +1,5 @@
 import strawberry
-from ..baseType import *
+from ..base.types import *
 from datetime import datetime
 from uuid import UUID
 from typing import List
@@ -26,6 +26,7 @@ class GetAllTransactionResponse(BaseResponse):
 @strawberry.type
 class TransactionSuccess(BaseSuccess):
     transaction:Optional[TransactionType] = None
+    
     
 
 class TransactionError(BaseError):

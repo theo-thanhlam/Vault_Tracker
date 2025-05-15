@@ -1,5 +1,5 @@
 import strawberry
-from ..baseType import BaseSuccess,BaseType, BaseError
+from ..base.types import BaseSuccess,BaseType, BaseError
 from ...models.category import CategoryTypeEnum
 from uuid import UUID
 from datetime import datetime
@@ -16,6 +16,7 @@ class CategoryType(BaseType):
 @strawberry.type
 class CategorySuccess(BaseSuccess):
     category:Optional[CategoryType]=None
+    
     
 @strawberry.type
 class CategoryError(BaseError):

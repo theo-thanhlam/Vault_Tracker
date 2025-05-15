@@ -1,6 +1,6 @@
 
 from ..transaction.types import TransactionType
-from ..baseType import *
+from ..base.types import *
 
 from typing import List
 import strawberry

@@ -10,7 +10,7 @@ from ...models import UserModel,TransactionModel
 from ...models.transaction import transaction_type_list,TransactionTypeEnum
 from sqlalchemy import sql
 from typing import Union
-from ..baseType import BaseInput
+from ..base.types import BaseInput
 from ...models import CategoryModel
 from fastapi import status
 
@@ -56,7 +56,7 @@ def update_existing_transaction(existing_transaction:TransactionModel,input:Upda
 class TransactionMutation:
     
     @strawberry.mutation
-    def createTransaction(self, input:CreateTransactionInput, info:Info) ->TransactionSuccess:
+    def create(self, input:CreateTransactionInput, info:Info) ->TransactionSuccess:
         session = db.get_session()
         user:UserModel = info.context.get("user")
 
@@ -77,7 +77,7 @@ class TransactionMutation:
         return TransactionSuccess( **success_data)
     
     @strawberry.mutation
-    def deleteTransaction(self, input: DeleteTransactionInput, info:Info) ->TransactionSuccess:
+    def delete(self, input: DeleteTransactionInput, info:Info) ->TransactionSuccess:
         session = db.get_session()
         user:UserModel = info.context.get("user")
         existing_transaction = DatabaseHandler.get_transaction_by_id(session, input.id)
@@ -94,7 +94,7 @@ class TransactionMutation:
         return TransactionSuccess(message="Deleted transaction successfully", code=200)
     
     @strawberry.mutation
-    def updateTransaction(self,input:UpdateTransactionInput, info:Info)->TransactionSuccess:
+    def update(self,input:UpdateTransactionInput, info:Info)->TransactionSuccess:
         session = db.get_session()
         user:UserModel = info.context.get("user")
         existing_transaction = DatabaseHandler.get_transaction_by_id(session, input.id)
