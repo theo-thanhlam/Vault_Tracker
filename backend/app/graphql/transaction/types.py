@@ -25,7 +25,7 @@ class GetAllTransactionResponse(BaseResponse):
     
 @strawberry.type
 class TransactionSuccess(BaseSuccess):
-    transaction:Optional[TransactionType] = None
+    result:Optional[TransactionType]=None
     
     
 

@@ -15,7 +15,8 @@ class CategoryType(BaseType):
     
 @strawberry.type
 class CategorySuccess(BaseSuccess):
-    category:Optional[CategoryType]=None
+    result:Optional[CategoryType]=None
+    
     
     
 @strawberry.type
