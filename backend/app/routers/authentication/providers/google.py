@@ -25,7 +25,7 @@ async def callback(request:Request):
         
         response:Response = RedirectResponse("/")
         
-        # response.set_cookie("access_token", login_token, httponly=True)
+        # response.set_cookie("auth_token", login_token, httponly=True)
         print(token)
         
         

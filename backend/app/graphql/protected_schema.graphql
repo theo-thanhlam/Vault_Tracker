@@ -1,0 +1,141 @@
+schema {
+  query: ProtectedQuery
+  mutation: ProtectedMutation
+}
+
+interface BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+}
+
+type CategoryMutation {
+  create(input: CreateCategoryInput!): CategorySuccess!
+  update(input: UpdateCategoryInput!): CategorySuccess!
+  delete(input: DeleteCategoryInput!): CategorySuccess!
+}
+
+type CategorySuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+  result: CategoryType
+}
+
+type CategoryType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  name: String!
+  type: CategoryTypeEnum!
+  description: String!
+  userId: UUID!
+  parentId: UUID
+}
+
+enum CategoryTypeEnum {
+  EXPENSE
+  INCOME
+  EQUITY
+  LIABILITY
+  ASSET
+  OTHER
+}
+
+input CreateCategoryInput {
+  name: String!
+  type: CategoryTypeEnum!
+  description: String!
+  parentId: UUID = null
+}
+
+input CreateTransactionInput {
+  amount: Float!
+  description: String!
+  categoryId: UUID!
+  date: DateTime = null
+}
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+input DeleteCategoryInput {
+  id: UUID!
+}
+
+input DeleteTransactionInput {
+  id: UUID!
+}
+
+type GetAllTransactionResponse implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+  transactions: [TransactionType!]!
+}
+
+input GetTransactionInput {
+  transactionId: UUID!
+}
+
+type ProtectedMutation {
+  category: CategoryMutation!
+  transaction: TransactionMutation!
+}
+
+type ProtectedQuery {
+  getTransactions: GetAllTransactionResponse!
+  getTransaction(input: GetTransactionInput!): TransactionType!
+}
+
+type TransactionMutation {
+  create(input: CreateTransactionInput!): TransactionSuccess!
+  update(input: UpdateTransactionInput!): TransactionSuccess!
+  delete(input: DeleteTransactionInput!): TransactionSuccess!
+}
+
+type TransactionSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+  result: TransactionType
+}
+
+type TransactionType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  amount: Float!
+  description: String!
+  categoryId: UUID!
+  date: DateTime!
+  userId: UUID!
+}
+
+scalar UUID
+
+input UpdateCategoryInput {
+  id: UUID!
+  name: String = null
+  type: CategoryTypeEnum = null
+  description: String = null
+  parentId: UUID = null
+}
+
+input UpdateTransactionInput {
+  id: UUID!
+  amount: Float = null
+  description: String = null
+  categoryId: UUID = null
+  date: DateTime = null
+}

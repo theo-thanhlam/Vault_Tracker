@@ -16,6 +16,7 @@ from strawberry.types import Info
 from fastapi import HTTPException
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from strawberry.exceptions import StrawberryGraphQLError
 load_dotenv()
 
 class AuthHandler:
@@ -209,13 +210,24 @@ class EmailHandler:
 
 
 def login_required(resolver):
-    
+    from ..api.base.types import BaseError
     @wraps(resolver)
-    def wrapper(*args, info: Info, **kwargs):
-        user = info.context.get("user")
-        if not user:
-            raise HTTPException(detail="Please login before proceed",status_code=401)
-        if not user.email_verified:
-            raise HTTPException(detail="Your account is not verified",status_code=401)
-        return resolver(*args, info=info, **kwargs)
+    def wrapper(*args, **kwargs):
+        # Extract `info` from args or kwargs
+        info = None
+
+        # Strawberry passes `info` as a positional argument typically at the second or third position
+        for arg in args:
+            if isinstance(arg, Info):
+                info = arg
+                break
+
+        if not info:
+            info = kwargs.get("info")
+
+        if not info or not info.context.get("user"):
+            raise BaseError(code=401, message="Unauthorized", detail="Please login before proceeding")
+
+        return resolver(*args, **kwargs)
+
     return wrapper

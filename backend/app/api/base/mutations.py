@@ -5,6 +5,8 @@ from typing import TypeVar,Generic,Type
 from fastapi import status
 from ...utils import db
 from sqlalchemy import sql
+from ...utils.handler import login_required
+
 
 
 TModel = TypeVar("TModel", bound=BaseModel)
@@ -16,7 +18,8 @@ TType = TypeVar("TType", bound=BaseType)
 
 
 
-class BaseMutation(Generic[TModel, TCreateInput, TUpdateInput, TDeleteInput, TSuccess, TType]):
+
+class BaseAuthenticatedMutation(Generic[TModel, TCreateInput, TUpdateInput, TDeleteInput, TSuccess, TType]):
     model: Type[TModel]
     success_type: Type[TSuccess]
     
@@ -30,23 +33,22 @@ class BaseMutation(Generic[TModel, TCreateInput, TUpdateInput, TDeleteInput, TSu
                 setattr(instance, k, v)
         instance.updated_at = sql.func.now()
         return instance
-
     
-        
-    def create(self, input: TCreateInput, info:strawberry.Info) -> TSuccess:
+    @login_required
+    def create(self,  input: TCreateInput,info:strawberry.Info) -> TSuccess:
         session = db.get_session()
         parsed_input = input.to_dict()
         user = info.context.get("user")
         new_instance = self.model(user_id=user.id, **parsed_input)
         session.add(new_instance)
         session.commit()
-
         return self.success_type(
             code=status.HTTP_201_CREATED,
             message=f"Created successfully",
             result= self.type(**new_instance.to_dict())
         )
-        
+    
+    @login_required
     def update(self, input:TUpdateInput, info:strawberry.Info) -> TSuccess:
         session = db.get_session()
         user = info.context.get("user")
@@ -65,6 +67,7 @@ class BaseMutation(Generic[TModel, TCreateInput, TUpdateInput, TDeleteInput, TSu
             result= self.type(**instance.to_dict())
         )
     
+    @login_required
     def delete(self, input:TUpdateInput, info:strawberry.Info) -> TSuccess:
         session = db.get_session()
         user = info.context.get("user")

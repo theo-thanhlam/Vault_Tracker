@@ -26,6 +26,10 @@ class LoginInput(BaseInput):
 @strawberry.input(description="Google login")
 class GoogleLoginInput(BaseInput):
     idToken:str
+    
+@strawberry.input(description="Verify user email")
+class VerifyEmailInput(BaseInput):
+    token:str
 
 def validate_register_input(input:RegisterInput) -> str|None: 
     errors = []
@@ -112,7 +116,7 @@ class AuthMutation:
         
         #Send login cookies to user (HTTP Only)
         response:Response = info.context["response"]
-        response.set_cookie("access_token", login_token, httponly=True)
+        response.set_cookie("auth_token", login_token, httponly=True)
 
         return AuthSucess(token=login_token, message="Logged in successfully", code=status.HTTP_200_OK)
     
@@ -160,7 +164,7 @@ class AuthMutation:
         
         login_token = JWTHandler.create_login_token(user.id)
         response:Response = info.context["response"]
-        response.set_cookie("access_token", login_token, httponly=True)
+        response.set_cookie("auth_token", login_token, httponly=True)
         return AuthSucess(token=login_token, message="Logged in successfully", code=status.HTTP_200_OK)
     
     @strawberry.mutation
@@ -170,7 +174,14 @@ class AuthMutation:
         if user:
             info.context['user'] = None
             response: Response = info.context["response"]
-            response.delete_cookie("access_token")
+            response.delete_cookie("auth_token")
+    
+    @strawberry.mutation
+    def verify_email(self, input:VerifyEmailInput) -> None:
+        # session = db.get_session()
+        result = AuthHandler.verify_email(token=input.token)
+        if result.get("status_code") != 200:
+            raise AuthError(code=result.get("status_code"), message=result.get("message"))
         
         
         

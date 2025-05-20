@@ -1,0 +1,84 @@
+schema {
+  query: AuthQuery
+  mutation: AuthMutation
+}
+
+"""Handles user-related authentication mutations"""
+type AuthMutation {
+  """
+  Register a new user. Takes user input (first name, last name, email, password), creates a new user in the database, and sends a verification email with a token link
+  """
+  register(input: RegisterInput!): AuthSucess!
+  login(input: LoginInput!): AuthSucess!
+  googleLogin(input: GoogleLoginInput!): AuthSucess!
+  logout: Void
+}
+
+type AuthQuery {
+  getCurrentUser: UserType!
+}
+
+type AuthSucess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Authentication token"""
+  token: String!
+}
+
+interface BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+}
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+"""Google login"""
+input GoogleLoginInput {
+  idToken: String!
+}
+
+"""Input data required to login"""
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+"""Input data required to register a new user"""
+input RegisterInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  password: String!
+}
+
+scalar UUID
+
+enum UserRoleEnum {
+  USER
+  MANAGER
+  ADMIN
+}
+
+type UserType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  firstName: String!
+  lastName: String!
+  email: String!
+  role: UserRoleEnum!
+  emailVerified: Boolean!
+  authProviderId: String
+}
+
+"""Represents NULL values"""
+scalar Void

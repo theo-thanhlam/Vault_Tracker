@@ -8,10 +8,11 @@ from strawberry import Info
 from .types import *
 from ...utils import db
 from sqlalchemy import sql
-from ..base.mutations import BaseMutation
+from ..base.mutations import BaseAuthenticatedMutation
 from ...utils.handler import *
 from fastapi import status
 from uuid import UUID
+from ...utils.handler import login_required
 
 
 @strawberry.input
@@ -36,7 +37,7 @@ class DeleteCategoryInput(BaseInput):
 
 
 @strawberry.type
-class CategoryMutation(BaseMutation[CategoryModel, CreateCategoryInput, UpdateCategoryInput, DeleteCategoryInput, CategorySuccess, CategoryType]):
+class CategoryMutation(BaseAuthenticatedMutation[CategoryModel, CreateCategoryInput, UpdateCategoryInput, DeleteCategoryInput, CategorySuccess, CategoryType]):
     model = CategoryModel
     success_type = CategorySuccess
     type = CategoryType

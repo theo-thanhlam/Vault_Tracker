@@ -13,7 +13,7 @@ from typing import Union
 from ..base.types import BaseInput
 from ...models import CategoryModel
 from fastapi import status
-from ..base.mutations import BaseMutation
+from ..base.mutations import BaseAuthenticatedMutation
 
 @strawberry.input
 class CreateTransactionInput(BaseInput):
@@ -124,7 +124,7 @@ def update_existing_transaction(existing_transaction:TransactionModel,input:Upda
 #         return TransactionSuccess(**success_data)
         
 @strawberry.type
-class TransactionMutation(BaseMutation):
+class TransactionMutation(BaseAuthenticatedMutation):
     model = TransactionModel
     success_type = TransactionSuccess
     type = TransactionType
@@ -140,6 +140,5 @@ class TransactionMutation(BaseMutation):
     
     @strawberry.mutation
     def delete(self, input:DeleteTransactionInput, info:strawberry.Info) -> TransactionSuccess:
-        
         return super().delete(input, info)
         
