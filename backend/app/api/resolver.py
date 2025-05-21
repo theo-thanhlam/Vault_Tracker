@@ -11,8 +11,18 @@ import strawberry
 
 @strawberry.type
 class Query:
-    auth: AuthQuery
-    transaction: TransactionQuery
-    category: CategoryQuery
+    @strawberry.field
+    def category(self) -> CategoryQuery:
+        return CategoryQuery()
+    
+    @strawberry.field
+    def transaction(self) -> TransactionQuery:
+        return TransactionQuery()
+
+    
+    
+    @strawberry.field
+    def auth(self) -> AuthQuery:
+        return AuthQuery()
     
     

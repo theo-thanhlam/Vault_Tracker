@@ -21,7 +21,8 @@ app.add_middleware(
     allow_origins=cors_config.ORIGINS,
     allow_credentials=cors_config.ALLOW_CREDENTIALS,
     allow_methods=cors_config.ALLOW_METHODS,
-    allow_headers=cors_config.ALLOW_HEADERS
+    allow_headers=cors_config.ALLOW_HEADERS,
+    # credentials=True
 )
 
 ## Session

@@ -186,9 +186,8 @@ class EmailHandler:
         "password":os.getenv("SMTP_APP_PASSWORD"),
         "from_email":os.getenv("SMTP_USERNAME")
     }
-    _API_URL = os.getenv("API_URL")
-    
-    verify_endpoint = f"{_API_URL}/auth/verify-email"
+    _FRONTEND_URL = os.getenv("FRONTEND_URL")
+    verify_endpoint = f"{_FRONTEND_URL}/auth/verify-email"
     
     
     @classmethod
