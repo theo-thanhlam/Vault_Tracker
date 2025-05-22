@@ -14,8 +14,9 @@ class CategoryType(BaseType):
     parent_id:UUID | None
     
 @strawberry.type
-class CategorySuccess(BaseSuccess):
-    result:Optional[CategoryType]=None
+class CategorySuccess(BaseSuccess[CategoryType]):
+    
+    pass
     
     
     

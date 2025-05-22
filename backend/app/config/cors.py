@@ -1,7 +1,9 @@
 
-
+origins = [
+    "http://localhost:3000"
+]
 class CorsConfig:
-    ORIGINS = ["*"]
+    ORIGINS = origins
     ALLOW_METHODS=["*"]
     ALLOW_HEADERS=["*"]
     ALLOW_CREDENTIALS=True

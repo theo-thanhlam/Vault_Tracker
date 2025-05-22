@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 ## Session
-app.add_middleware(SessionMiddleware, secret_key = "key")
+app.add_middleware(SessionMiddleware, secret_key = "whlM5uIw+qslOOz1jISxECKTsR1t09bDoOVKUMQkKj2NhSoMG2fTCIf1NSqkzVzJ")
 
 
 #Routers

@@ -81,6 +81,10 @@ class AuthMutation:
         # Send email
         register_token = JWTHandler.create_signup_token(new_user.id)
         EmailHandler.send_verification_email(token=register_token, user_email=new_user.email)
+        
+        success_value = {
+            "token":register_token
+        }
 
         
         return AuthSucess(token=register_token,code=status.HTTP_201_CREATED, message="Created user successfully")
@@ -117,17 +121,22 @@ class AuthMutation:
         #Send login cookies to user (HTTP Only)
         response:Response = info.context["response"]
         response.set_cookie("auth_token", login_token, httponly=True)
+        
+        
 
-        return AuthSucess(token=login_token, message="Logged in successfully", code=status.HTTP_200_OK)
+        return AuthSucess( message="Logged in successfully", code=status.HTTP_200_OK, token=login_token)
     
     @strawberry.mutation
     async def googleLogin(self, input:GoogleLoginInput, info:Info) ->AuthSucess:
+        
         
         if info.context.get("user"):
             raise AuthError(message="This email already logged in", code=status.HTTP_400_BAD_REQUEST)
         
         session = db.get_session()
         google_idInfo = await AuthHandler.verify_google_token(input.idToken)
+        if not google_idInfo:
+            raise AuthError(message="Invalid token", code=status.HTTP_401_UNAUTHORIZED)
         payload = {
             'firstName':google_idInfo.get("given_name"),
             'lastName':google_idInfo.get("family_name"),
@@ -137,7 +146,13 @@ class AuthMutation:
          }
         user = None
         
+        # email_registered_with_google = DatabaseHandler.check_email_registered_with_google(session=session,email=payload.get("email"))
+     
+        
         existing_user = DatabaseHandler.get_user_by_email(session=session,email=payload.get("email"))
+        if existing_user.password:
+            raise AuthError(message="Account already exists", code=status.HTTP_409_CONFLICT, detail="Please sign in by different methods")
+        
         
         if existing_user:
             user = existing_user
@@ -163,6 +178,9 @@ class AuthMutation:
             user = new_user
         
         login_token = JWTHandler.create_login_token(user.id)
+        success_value = {
+            "token":login_token
+        }
         response:Response = info.context["response"]
         response.set_cookie("auth_token", login_token, httponly=True)
         return AuthSucess(token=login_token, message="Logged in successfully", code=status.HTTP_200_OK)

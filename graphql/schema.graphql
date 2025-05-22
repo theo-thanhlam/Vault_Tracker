@@ -1,0 +1,244 @@
+"""Handles user-related authentication mutations"""
+type AuthMutation {
+  """
+  Register a new user. Takes user input (first name, last name, email, password), creates a new user in the database, and sends a verification email with a token link
+  """
+  register(input: RegisterInput!): AuthSucess!
+  login(input: LoginInput!): AuthSucess!
+  googleLogin(input: GoogleLoginInput!): AuthSucess!
+  logout: Void
+  verifyEmail(input: VerifyEmailInput!): Void
+}
+
+type AuthQuery {
+  getCurrentUser: GetUserSuccess!
+}
+
+type AuthSucess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Return success values"""
+  values: JSON
+
+  """Authentication token"""
+  token: String
+}
+
+interface BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+}
+
+type CategoryMutation {
+  create(input: CreateCategoryInput!): CategorySuccess!
+  update(input: UpdateCategoryInput!): CategorySuccess!
+  delete(input: DeleteCategoryInput!): CategorySuccess!
+}
+
+"""Handles category-related mutations"""
+type CategoryQuery {
+  getCategory: CategorySuccess!
+}
+
+type CategorySuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Return success values"""
+  values: CategoryType
+}
+
+type CategoryType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  name: String!
+  type: CategoryTypeEnum!
+  description: String!
+  userId: UUID!
+  parentId: UUID
+}
+
+enum CategoryTypeEnum {
+  EXPENSE
+  INCOME
+  EQUITY
+  LIABILITY
+  ASSET
+  OTHER
+}
+
+input CreateCategoryInput {
+  name: String!
+  type: CategoryTypeEnum!
+  description: String!
+  parentId: UUID = null
+}
+
+input CreateTransactionInput {
+  amount: Float!
+  description: String!
+  categoryId: UUID!
+  date: DateTime = null
+}
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+input DeleteCategoryInput {
+  id: UUID!
+}
+
+input DeleteTransactionInput {
+  id: UUID!
+}
+
+type GetAllTransactionResponse implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+  transactions: [TransactionType!]!
+}
+
+input GetTransactionInput {
+  transactionId: UUID!
+}
+
+type GetUserSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Return success values"""
+  values: UserType
+}
+
+"""Google login"""
+input GoogleLoginInput {
+  idToken: String!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](https://ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf).
+"""
+scalar JSON @specifiedBy(url: "https://ecma-international.org/wp-content/uploads/ECMA-404_2nd_edition_december_2017.pdf")
+
+"""Input data required to login"""
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  category: CategoryMutation!
+  transaction: TransactionMutation!
+  auth: AuthMutation!
+}
+
+type Query {
+  category: CategoryQuery!
+  transaction: TransactionQuery!
+  auth: AuthQuery!
+}
+
+"""Input data required to register a new user"""
+input RegisterInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  password: String!
+}
+
+type TransactionMutation {
+  create(input: CreateTransactionInput!): TransactionSuccess!
+  update(input: UpdateTransactionInput!): TransactionSuccess!
+  delete(input: DeleteTransactionInput!): TransactionSuccess!
+}
+
+type TransactionQuery {
+  getTransactions: GetAllTransactionResponse!
+  getTransaction(input: GetTransactionInput!): TransactionType!
+}
+
+type TransactionSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Return success values"""
+  values: TransactionType
+}
+
+type TransactionType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  amount: Float!
+  description: String!
+  categoryId: UUID!
+  date: DateTime!
+  userId: UUID!
+}
+
+scalar UUID
+
+input UpdateCategoryInput {
+  id: UUID!
+  name: String = null
+  type: CategoryTypeEnum = null
+  description: String = null
+  parentId: UUID = null
+}
+
+input UpdateTransactionInput {
+  id: UUID!
+  amount: Float = null
+  description: String = null
+  categoryId: UUID = null
+  date: DateTime = null
+}
+
+enum UserRoleEnum {
+  USER
+  MANAGER
+  ADMIN
+}
+
+type UserType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  firstName: String!
+  lastName: String!
+  email: String!
+  role: UserRoleEnum!
+  emailVerified: Boolean!
+  authProviderId: String
+}
+
+"""Verify user email"""
+input VerifyEmailInput {
+  token: String!
+}
+
+"""Represents NULL values"""
+scalar Void

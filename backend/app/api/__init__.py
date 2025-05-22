@@ -11,12 +11,15 @@ from jwt import PyJWTError
 
 def get_context(req:Request, res:Response) ->dict:
    token = req.cookies.get("auth_token")
+   
   
    
    try:
       user = session.get_current_user(token=token)
    except PyJWTError:
       user = None
+      
+   
       
    return {
       "request":req,

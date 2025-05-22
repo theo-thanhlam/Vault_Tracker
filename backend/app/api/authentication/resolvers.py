@@ -2,6 +2,8 @@ import strawberry
 from uuid import UUID
 from strawberry.types import Info
 from .types import *
+from ...models.user import UserModel
+from ...utils.handler import login_required
 
 
 @strawberry.input
@@ -10,14 +12,15 @@ class UserQueryInput:
 
 @strawberry.type
 class AuthQuery:
+    
     @strawberry.field
-    def getCurrentUser(self, info:Info) -> UserType:
+    @login_required
+    def getCurrentUser(self, info:Info) -> GetUserSuccess:
         
-        user = info.context.get("user")
-        
-        if not user:
-            raise AuthError(message="Unauthorized user", code = status.HTTP_401_UNAUTHORIZED)
+        user:UserModel = info.context.get("user")
         user_dict = {k:v for k,v in user.to_dict().items() if k != 'password'}
         
-        return UserType(**user_dict)
+        
+        return AuthSucess(code=200, message="Get user successfully", values= UserType(**user_dict))
+        
         

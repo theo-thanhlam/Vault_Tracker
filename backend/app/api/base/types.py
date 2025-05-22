@@ -2,10 +2,10 @@ import strawberry
 from uuid import UUID
 from datetime import datetime
 
-
+from strawberry.scalars import JSON
 from strawberry.exceptions import StrawberryGraphQLError
 from fastapi import status
-from typing import Any, Optional, Type, TypeVar, Generic
+from typing import Any, Optional, Type, TypeVar, Generic, Dict
 
 
 
@@ -40,18 +40,21 @@ class BaseError(StrawberryGraphQLError):
             }
         )
         
-TResponse = TypeVar("TResponse", bound=BaseType)
+
 
 @strawberry.interface
 class BaseResponse:
     message: str = strawberry.field( description="Success message")
     code: int = strawberry.field(description="HTTP status code")
     
-    
+   
+TResponse = TypeVar("TResponse", bound=BaseType) 
 @strawberry.type
-class BaseSuccess(BaseResponse):
-    # values:TResponse = strawberry.field(default=None, description="Return values")
-    pass
+class BaseSuccess(BaseResponse,Generic[TResponse]):
+    # values:Dict[str,Any] = strawberry.field(default_factory=dict, description="Return values")
+    values:Optional[TResponse] = strawberry.field(default=None, description="Return success values")
+
+
     
     
     
