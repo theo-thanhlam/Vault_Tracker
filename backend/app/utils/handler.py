@@ -129,7 +129,7 @@ class DatabaseHandler:
     
     @staticmethod
     def check_email_registered_with_google(session:Session, email:str):
-        return session.query(UserModel,AuthProviderModel).filter(UserModel.email == email).filter(UserModel.auth_provider_id == AuthProviderModel.id).filter_by(name=AuthProviderName.GOOGLE).first()
+        return session.query(UserModel,AuthProviderModel).filter(UserModel.email == email).filter(UserModel.auth_provider_id == AuthProviderModel.id).filter(AuthProviderModel.name==AuthProviderName.GOOGLE).first()
     
     @staticmethod
     def create_category(session:Session, category_doc:CategoryModel):

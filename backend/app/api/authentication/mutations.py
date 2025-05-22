@@ -132,8 +132,9 @@ class AuthMutation:
         
         if info.context.get("user"):
             raise AuthError(message="This email already logged in", code=status.HTTP_400_BAD_REQUEST)
-        
+
         session = db.get_session()
+       
         google_idInfo = await AuthHandler.verify_google_token(input.idToken)
         if not google_idInfo:
             raise AuthError(message="Invalid token", code=status.HTTP_401_UNAUTHORIZED)
@@ -145,15 +146,16 @@ class AuthMutation:
             'email':google_idInfo.get("email")
          }
         user = None
-        
-        # email_registered_with_google = DatabaseHandler.check_email_registered_with_google(session=session,email=payload.get("email"))
-     
-        
-        existing_user = DatabaseHandler.get_user_by_email(session=session,email=payload.get("email"))
-        if existing_user.password:
+
+        email_registered_with_google = DatabaseHandler.check_email_registered_with_google(session=session,email=payload.get("email"))
+        if not email_registered_with_google:
             raise AuthError(message="Account already exists", code=status.HTTP_409_CONFLICT, detail="Please sign in by different methods")
         
+       
         
+        
+        existing_user = DatabaseHandler.get_user_by_email(session=session,email=payload.get("email"))
+      
         if existing_user:
             user = existing_user
         else:
