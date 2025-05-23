@@ -37,8 +37,10 @@ export const authOptions: AuthOptions = {
       // Send properties to the client, like an access_token and user id from a provider.
       if (token.id_token) {
         session.id_token = token.id_token as string;
+        
       }
       return session;
+       
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

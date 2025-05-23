@@ -1,6 +1,6 @@
 import strawberry
 from uuid import UUID
-from .types import TransactionType, GetAllTransactionResponse
+from .types import *
 from ...utils import db
 from ...models import UserModel
 from ...utils.handler import DatabaseHandler
@@ -16,11 +16,11 @@ class GetTransactionInput:
 @strawberry.type
 class TransactionQuery:
     @strawberry.field
-    def getTransactions(self, info:Info) -> GetAllTransactionResponse:
+    def getTransactions(self, info:Info) -> GetAllTransactionsResponse:
         user = info.context.get("user")
         session = db.get_session()
         user_transactions = DatabaseHandler.get_all_transactions_by_user_id(session=session, user_id=user.id)
-        return GetAllTransactionResponse(transactions=user_transactions, message=f"Here are all {user.firstName} {user.lastName}'s transactions", code=status.HTTP_200_OK)
+        return GetAllTransactionsResponse(transactions=user_transactions, message=f"Here are all {user.firstName} {user.lastName}'s transactions", code=status.HTTP_200_OK)
     @strawberry.field
     def getTransaction(self, input:GetTransactionInput, info:Info) -> TransactionType:
         

@@ -1,6 +1,6 @@
 import bcrypt
 from sqlalchemy import UUID
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from ..models import *
 import jwt
 import os
@@ -125,7 +125,12 @@ class DatabaseHandler:
     
     @staticmethod
     def get_all_transactions_by_user_id(session:Session, user_id:UUID):
-        return session.query(TransactionModel).filter_by(user_id=user_id).all()
+        return session.query(TransactionModel.id, TransactionModel.amount, TransactionModel.description, CategoryModel.name.label("categoryName"), CategoryModel.type.label("categoryType"), TransactionModel.date, TransactionModel.created_at, TransactionModel.updated_at, TransactionModel.user_id)\
+        .filter(user_id == UserModel.id)\
+        .filter(TransactionModel.deleted_at == None)\
+        .join(CategoryModel, CategoryModel.id == TransactionModel.category_id)\
+        .filter(CategoryModel.deleted_at == None)\
+        .all()
     
     @staticmethod
     def check_email_registered_with_google(session:Session, email:str):
@@ -139,6 +144,13 @@ class DatabaseHandler:
             session.refresh(category_doc)
         except Exception as e:
             raise e
+    
+    @staticmethod
+    def get_all_categories_by_user_id(session:Session, user_id:UUID):
+        return session.query( CategoryModel)\
+        .filter(CategoryModel.user_id==user_id)\
+        .filter(CategoryModel.deleted_at==None)\
+        .all()
     
     
 class JWTHandler:

@@ -25,7 +25,7 @@ start_redis() {
 
 # Main function to run all services concurrently
 start_services() {
-  start_redis
+  # start_redis
   start_backend
   start_frontend
 }

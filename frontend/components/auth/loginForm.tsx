@@ -40,7 +40,7 @@ export default function LoginForm() {
       const token = data?.auth?.googleLogin?.token;
       if (token) {
         toast.success("Google login successful!");
-        setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => window.location.reload(), 1000);
       } else {
         const msg = data?.auth?.googleLogin?.message || "Google login failed";
         setError(msg);

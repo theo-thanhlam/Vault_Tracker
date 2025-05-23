@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 
 
 const GET_CURRENT_USER_QUERY = `
@@ -37,3 +38,9 @@ export async function getCurrentUser(authToken: string) {
       const user = result?.data?.auth?.getCurrentUser?.values;
       return user;
   }
+
+export async function getAuthStatus(){
+
+  const authHeader = (await headers()).get('x-auth-status')
+  return authHeader
+}

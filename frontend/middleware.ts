@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
   const user = await getCurrentUser(authToken as string);
   const response = NextResponse.next();
   response.headers.set('x-auth-status', user ? 'authenticated' : 'unauthenticated');
+  
 
 
   if (request.nextUrl.pathname.startsWith('/auth')) {

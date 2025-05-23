@@ -45,7 +45,7 @@ class BaseAuthenticatedMutation(Generic[TModel, TCreateInput, TUpdateInput, TDel
         return self.success_type(
             code=status.HTTP_201_CREATED,
             message=f"Created successfully",
-            result= self.type(**new_instance.to_dict())
+            values= self.type(**new_instance.to_dict())
         )
     
     @login_required
@@ -64,7 +64,7 @@ class BaseAuthenticatedMutation(Generic[TModel, TCreateInput, TUpdateInput, TDel
         return self.success_type(
             code=status.HTTP_200_OK,
             message='Updated successfully',
-            result= self.type(**instance.to_dict())
+            values= self.type(**instance.to_dict())
         )
     
     @login_required

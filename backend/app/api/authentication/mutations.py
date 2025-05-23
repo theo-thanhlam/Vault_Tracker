@@ -147,9 +147,7 @@ class AuthMutation:
          }
         user = None
 
-        email_registered_with_google = DatabaseHandler.check_email_registered_with_google(session=session,email=payload.get("email"))
-        if not email_registered_with_google:
-            raise AuthError(message="Account already exists", code=status.HTTP_409_CONFLICT, detail="Please sign in by different methods")
+       
         
        
         
@@ -157,6 +155,10 @@ class AuthMutation:
         existing_user = DatabaseHandler.get_user_by_email(session=session,email=payload.get("email"))
       
         if existing_user:
+            
+            email_registered_with_google = DatabaseHandler.check_email_registered_with_google(session=session,email=payload.get("email"))
+            if not email_registered_with_google:
+                raise AuthError(message="Account already exists", code=status.HTTP_409_CONFLICT, detail="Please sign in by different methods")
             user = existing_user
         else:
             new_user = UserModel(
