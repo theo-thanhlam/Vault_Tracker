@@ -34,19 +34,20 @@ import { Category } from "@/types/category";
 import { DELETE_CATEGORY_MUTATION } from "@/lib/graphql/category/gql";
 import { CategoryForm } from "./category-form";
 
-type CategoryWithoutUserId = Omit<Category, 'userId'>;
+type CategoryWithoutUserId = Omit<Category, "userId">;
 
 export function CategoryList() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryWithoutUserId | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<CategoryWithoutUserId | null>(null);
 
   const { data, loading, error, refetch } = useQuery(GET_CATEGORIES_QUERY, {
-    fetchPolicy: 'network-only', // Don't cache the results
+    fetchPolicy: "network-only", // Don't cache the results
   });
 
-  const categories = data?.category?.getCategory?.values || [];
+  const categories = data?.category?.getAllCategories?.values || [];
 
   const [deleteCategory] = useMutation(DELETE_CATEGORY_MUTATION, {
     onCompleted: () => {
@@ -71,7 +72,7 @@ export function CategoryList() {
 
   const handleDeleteConfirm = async () => {
     if (!selectedCategory) return;
-    
+
     try {
       await deleteCategory({
         variables: {
@@ -101,8 +102,13 @@ export function CategoryList() {
     <>
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
-          <CardTitle className="text-md md:text-xl lg:text-2xl">Recent Categories</CardTitle>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <CardTitle className="text-md md:text-xl lg:text-2xl">
+            Recent Categories
+          </CardTitle>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="h-4 w-4" />
@@ -111,7 +117,9 @@ export function CategoryList() {
             </DialogTrigger>
             <DialogContent className="w-[95vw] sm:w-[425px] md:w-[600px] lg:w-[800px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-lg sm:text-xl md:text-2xl">Create New Category</DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl md:text-2xl">
+                  Create New Category
+                </DialogTitle>
                 <DialogDescription className="text-sm md:text-base">
                   Add a new category to your account.
                 </DialogDescription>
@@ -158,7 +166,9 @@ export function CategoryList() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="w-[95vw] sm:w-[425px] md:w-[600px] lg:w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl md:text-2xl">Edit Category</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl md:text-2xl">
+              Edit Category
+            </DialogTitle>
             <DialogDescription className="text-sm md:text-base">
               Update category details.
             </DialogDescription>
@@ -176,16 +186,24 @@ export function CategoryList() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent className="w-[95vw] sm:w-[425px] md:w-[500px]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg sm:text-xl md:text-2xl">Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-lg sm:text-xl md:text-2xl">
+              Are you sure?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-sm md:text-base">
-              This action cannot be undone. This will permanently delete the category.
+              This action cannot be undone. This will permanently delete the
+              category.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-            <AlertDialogCancel className="w-full sm:w-auto mt-0">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="w-full sm:w-auto mt-0">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -197,4 +215,4 @@ export function CategoryList() {
       </AlertDialog>
     </>
   );
-} 
+}

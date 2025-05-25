@@ -1,5 +1,5 @@
 import bcrypt
-from sqlalchemy import UUID
+from sqlalchemy import UUID, func
 from sqlalchemy.orm import Session, aliased
 from ..models import *
 import jwt
@@ -74,7 +74,8 @@ class AuthHandler:
 
             return {"message": "Email verified successfully", "status_code":200}
         except Exception as e:
-            pass
+            return {"message": "Something went wrong", "status_code":500}
+            
         
     @staticmethod
     async def verify_google_token(token:str):
@@ -124,12 +125,13 @@ class DatabaseHandler:
         return session.query(TransactionModel).filter_by(id=id).first()
     
     @staticmethod
-    def get_all_transactions_by_user_id(session:Session, user_id:UUID):
+    def get_all_transactions_by_user_id(session:Session, user_id:UUID, limit:int = 10):
         return session.query(TransactionModel.id, TransactionModel.amount, TransactionModel.description, CategoryModel.name.label("categoryName"), CategoryModel.type.label("categoryType"), TransactionModel.date, TransactionModel.created_at, TransactionModel.updated_at, TransactionModel.user_id)\
-        .filter(user_id == UserModel.id)\
+        .filter(user_id == TransactionModel.user_id)\
         .filter(TransactionModel.deleted_at == None)\
         .join(CategoryModel, CategoryModel.id == TransactionModel.category_id)\
         .filter(CategoryModel.deleted_at == None)\
+        .limit(limit)\
         .all()
     
     @staticmethod
@@ -151,6 +153,16 @@ class DatabaseHandler:
         .filter(CategoryModel.user_id==user_id)\
         .filter(CategoryModel.deleted_at==None)\
         .all()
+        
+    @staticmethod
+    def get_total_by_category_type(session:Session, user_id:UUID):
+        return session.query(CategoryModel.type, func.sum(TransactionModel.amount).label("total"))\
+            .join(CategoryModel, CategoryModel.id == TransactionModel.category_id)\
+            .filter(TransactionModel.user_id == user_id)\
+            .filter(TransactionModel.deleted_at == None)\
+            .filter(CategoryModel.deleted_at == None)\
+            .group_by(CategoryModel.type)\
+            .all()
     
     
 class JWTHandler:

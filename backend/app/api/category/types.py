@@ -1,8 +1,9 @@
 import strawberry
-from ..base.types import BaseSuccess,BaseType, BaseError
+from ..base.types import BaseSuccess,BaseType, BaseError, BaseResponse
 from ...models.category import CategoryTypeEnum
 from uuid import UUID
-from typing import List
+from typing import List, Optional, Dict
+from strawberry.scalars import JSON
 
 @strawberry.type
 class CategoryType(BaseType):
@@ -23,6 +24,16 @@ class GetCategorySuccess(BaseSuccess[CategoryType]):
     
     
     
-@strawberry.type
 class CategoryError(BaseError):
     pass
+
+@strawberry.type
+class CategoryTypeSum:
+    type:str
+    total:float
+
+@strawberry.type
+class getSumByCategoryTypeSuccess(BaseSuccess[JSON]):
+    pass
+   
+    

@@ -5,7 +5,7 @@ import { Category } from '@/types/category';
 export const GET_CATEGORIES_QUERY = gql`
   query GetCategories {
     category {
-      getCategory {
+      getAllCategories {
         message
         code
         values {
@@ -31,7 +31,6 @@ export async function getCategories(): Promise<Category[]> {
     if (data?.category?.getCategory?.code !== 200) {
       throw new Error(data?.category?.getCategory?.message || 'Failed to fetch categories');
     }
-
     return data.category.getCategory.values || [];
   } catch (error) {
     console.error('Error fetching categories:', error);

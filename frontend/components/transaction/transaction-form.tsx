@@ -35,7 +35,10 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
-import { CREATE_TRANSACTION_MUTATION, UPDATE_TRANSACTION_MUTATION } from "@/lib/graphql/transaction/mutations";
+import {
+  CREATE_TRANSACTION_MUTATION,
+  UPDATE_TRANSACTION_MUTATION,
+} from "@/lib/graphql/transaction/mutations";
 import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/queries";
 import { Category } from "@/types/category";
 import { Transaction } from "@/types/transaction";
@@ -58,17 +61,19 @@ interface TransactionFormProps {
 type CategoryWithChildren = Category & { children: CategoryWithChildren[] };
 
 // Helper function to build category hierarchy
-function buildCategoryHierarchy(categories: Category[]): CategoryWithChildren[] {
+function buildCategoryHierarchy(
+  categories: Category[]
+): CategoryWithChildren[] {
   const categoryMap = new Map<string, CategoryWithChildren>();
   const rootCategories: CategoryWithChildren[] = [];
 
   // First pass: create map of all categories with empty children arrays
-  categories.forEach(category => {
+  categories.forEach((category) => {
     categoryMap.set(category.id, { ...category, children: [] });
   });
 
   // Second pass: build hierarchy
-  categories.forEach(category => {
+  categories.forEach((category) => {
     const categoryWithChildren = categoryMap.get(category.id)!;
     if (category.parentId && categoryMap.has(category.parentId)) {
       const parent = categoryMap.get(category.parentId)!;
@@ -85,27 +90,30 @@ function buildCategoryHierarchy(categories: Category[]): CategoryWithChildren[] 
 function calculateCategoryLevels(categories: Category[]): Map<string, number> {
   const levels = new Map<string, number>();
   const categoryMap = new Map<string, Category>();
-  
+
   // First, create a map of all categories for easy lookup
-  categories.forEach(category => {
+  categories.forEach((category) => {
     categoryMap.set(category.id, category);
     levels.set(category.id, 0);
   });
 
   // Then, calculate the actual level for each category
-  categories.forEach(category => {
+  categories.forEach((category) => {
     let currentCategory = category;
     let level = 0;
     const visited = new Set<string>(); // To detect cycles
-    
+
     // Traverse up the parent chain until we reach a root category
-    while (currentCategory.parentId && categoryMap.has(currentCategory.parentId)) {
+    while (
+      currentCategory.parentId &&
+      categoryMap.has(currentCategory.parentId)
+    ) {
       if (visited.has(currentCategory.id)) break; // Break if cycle detected
       visited.add(currentCategory.id);
       level++;
       currentCategory = categoryMap.get(currentCategory.parentId)!;
     }
-    
+
     levels.set(category.id, level);
   });
 
@@ -113,18 +121,18 @@ function calculateCategoryLevels(categories: Category[]): Map<string, number> {
 }
 
 // Helper component to render category option with indentation
-function CategoryOption({ 
-  category, 
+function CategoryOption({
+  category,
   level = 0,
   categoryLevels,
-}: { 
-  category: CategoryWithChildren, 
-  level?: number,
-  categoryLevels: Map<string, number>,
+}: {
+  category: CategoryWithChildren;
+  level?: number;
+  categoryLevels: Map<string, number>;
 }) {
   const actualLevel = categoryLevels.get(category.id) || 0;
   const indentSize = 12; // pixels of indentation per level
-  
+
   return (
     <>
       <SelectItem value={category.id}>
@@ -135,10 +143,10 @@ function CategoryOption({
         </div>
       </SelectItem>
       {category.children.map((child) => (
-        <CategoryOption 
-          key={child.id} 
-          category={child} 
-          level={level + 1} 
+        <CategoryOption
+          key={child.id}
+          category={child}
+          level={level + 1}
           categoryLevels={categoryLevels}
         />
       ))}
@@ -146,30 +154,41 @@ function CategoryOption({
   );
 }
 
-export function TransactionForm({ initialData, onSuccess }: TransactionFormProps) {
+export function TransactionForm({
+  initialData,
+  onSuccess,
+}: TransactionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Fetch categories for the dropdown
   const { data: categoriesData } = useQuery(GET_CATEGORIES_QUERY);
-  const categories = categoriesData?.category?.getCategory?.values || [];
-  
+  const categories = categoriesData?.category?.getAllCategories?.values || [];
+
   // Build category hierarchy and calculate levels
-  const categoryHierarchy = useMemo(() => buildCategoryHierarchy(categories), [categories]);
-  const categoryLevels = useMemo(() => calculateCategoryLevels(categories), [categories]);
+  const categoryHierarchy = useMemo(
+    () => buildCategoryHierarchy(categories),
+    [categories]
+  );
+  const categoryLevels = useMemo(
+    () => calculateCategoryLevels(categories),
+    [categories]
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData ? {
-      amount: initialData.amount,
-      description: initialData.description,
-      categoryId: initialData.categoryId,
-      date: new Date(initialData.date),
-    } : {
-      amount: 0,
-      description: "",
-      categoryId: "",
-      date: new Date(),
-    },
+    defaultValues: initialData
+      ? {
+          amount: initialData.amount,
+          description: initialData.description,
+          categoryId: initialData.categoryId,
+          date: new Date(initialData.date),
+        }
+      : {
+          amount: 0,
+          description: "",
+          categoryId: "",
+          date: new Date(),
+        },
   });
 
   const [createTransaction] = useMutation(CREATE_TRANSACTION_MUTATION, {
@@ -267,9 +286,9 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
                   </FormControl>
                   <SelectContent>
                     {categoryHierarchy.map((category) => (
-                      <CategoryOption 
-                        key={category.id} 
-                        category={category} 
+                      <CategoryOption
+                        key={category.id}
+                        category={category}
                         categoryLevels={categoryLevels}
                       />
                     ))}
@@ -306,16 +325,16 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
                 </Popover>
                 <FormMessage />
               </FormItem>
@@ -346,12 +365,14 @@ export function TransactionForm({ initialData, onSuccess }: TransactionFormProps
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 {initialData ? "Updating..." : "Creating..."}
               </div>
+            ) : initialData ? (
+              "Update Transaction"
             ) : (
-              initialData ? "Update Transaction" : "Create Transaction"
+              "Create Transaction"
             )}
           </Button>
         </form>
       </Form>
     </motion.div>
   );
-} 
+}

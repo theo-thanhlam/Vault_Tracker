@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { MoreHorizontal, Pencil, Trash, Calendar, DollarSign, Tag, FileText } from "lucide-react";
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash,
+  Calendar,
+  DollarSign,
+  Tag,
+  FileText,
+} from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,13 +35,17 @@ interface TransactionCardProps {
   onDelete?: (transaction: Transaction) => void;
 }
 
-export function TransactionCard({ 
-  transaction, 
-  onEdit, 
-  onDelete 
+export function TransactionCard({
+  transaction,
+  onEdit,
+  onDelete,
 }: TransactionCardProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  
+
+  const amount_display =
+    transaction.categoryType === "expense"
+      ? `- \$${transaction.amount.toFixed(2)}`
+      : `\$${transaction.amount.toFixed(2)}`;
 
   return (
     <>
@@ -43,22 +55,27 @@ export function TransactionCard({
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.2 }}
       >
-        <Card 
+        <Card
           className="cursor-pointer hover:bg-accent/50 transition-colors"
           onClick={() => setIsDetailsOpen(true)}
         >
           <CardContent className="px-4 py-3">
             <div className="flex justify-between items-start flex-col md:flex-row">
               <div className="flex-1">
-                <h3 className="font-medium text-md md:text-lg lg:text-xl">{transaction.description}</h3>
+                <h3 className="font-medium text-md md:text-lg lg:text-xl">
+                  {transaction.description}
+                </h3>
                 <p className="text-sm text-muted-foreground mt-1 hidden md:block">
                   {format(new Date(transaction.date), "PPP")}
                 </p>
               </div>
-              <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="text-right">
                   <p className="font-medium text-md md:text-lg lg:text-xl">
-                    ${transaction.amount.toFixed(2)}
+                    {amount_display}
                   </p>
                   <p className="text-sm text-muted-foreground hidden md:block">
                     {transaction.categoryName}
@@ -66,23 +83,29 @@ export function TransactionCard({
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto md:ml-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 ml-auto md:ml-0"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                       <span className="sr-only">Open menu</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {onEdit && (
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(transaction);
-                      }}>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(transaction);
+                        }}
+                      >
                         <Pencil className="h-4 w-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
                     )}
                     {onDelete && (
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(transaction);
@@ -104,29 +127,35 @@ export function TransactionCard({
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="w-[95vw] sm:w-[425px] md:w-[600px] lg:w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl md:text-2xl">Transaction Details</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl md:text-2xl">
+              Transaction Details
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Amount</p>
-                <p className="text-md md:text-lg font-bold">${transaction.amount.toFixed(2)}</p>
+                <p className="text-md md:text-lg font-bold">{amount_display}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Tag className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Transaction Type</p>
-                <p className="text-md md:text-lg font-bold uppercase">{transaction.categoryType}</p>
+                <p className="text-md md:text-lg font-bold uppercase">
+                  {transaction.categoryType}
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Description</p>
-                <p className="text-sm md:text-base text-muted-foreground">{transaction.description}</p>
+                <p className="text-sm md:text-base text-muted-foreground">
+                  {transaction.description}
+                </p>
               </div>
             </div>
 
@@ -144,7 +173,9 @@ export function TransactionCard({
               <Tag className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Category</p>
-                <p className="text-sm md:text-base text-muted-foreground">{transaction.categoryName}</p>
+                <p className="text-sm md:text-base text-muted-foreground">
+                  {transaction.categoryName}
+                </p>
               </div>
             </div>
 
@@ -166,4 +197,4 @@ export function TransactionCard({
       </Dialog>
     </>
   );
-} 
+}

@@ -3,7 +3,10 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { signIn, useSession } from "next-auth/react";
-import { LOGIN_MUTATION, GOOGLE_LOGIN_MUTATION } from "@/lib/graphql/authentication/mutations";
+import {
+  LOGIN_MUTATION,
+  GOOGLE_LOGIN_MUTATION,
+} from "@/lib/graphql/authentication/mutations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +19,7 @@ export default function LoginForm() {
   const { data: session } = useSession();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
-  
+
   const [login, { loading: loginLoading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
       const token = data?.auth?.login?.token;
@@ -31,41 +34,48 @@ export default function LoginForm() {
     },
     onError: (err) => {
       setError(err.message);
-      toast.error((err.graphQLErrors[0]?.extensions?.detail as string) || "Failed to login with Google");
+
+      toast.error(
+        "Please check your email and password or register a new account"
+      );
     },
   });
 
-  const [googleLogin, { loading: googleLoading }] = useMutation(GOOGLE_LOGIN_MUTATION, {
-    onCompleted: (data) => {
-      const token = data?.auth?.googleLogin?.token;
-      if (token) {
-        toast.success("Google login successful!");
+  const [googleLogin, { loading: googleLoading }] = useMutation(
+    GOOGLE_LOGIN_MUTATION,
+    {
+      onCompleted: (data) => {
+        const token = data?.auth?.googleLogin?.token;
+        if (token) {
+          toast.success("Google login successful!");
           setTimeout(() => window.location.reload(), 1000);
-      } else {
-        const msg = data?.auth?.googleLogin?.message || "Google login failed";
-        setError(msg);
-        toast.error(msg);
-      }
-    },
-    onError: (err) => {
-      setError(err.message);
-      toast.error((err.graphQLErrors[0]?.extensions?.detail as string) || "Failed to login with Google");
-    },
-  });
+        } else {
+          const msg = data?.auth?.googleLogin?.message || "Google login failed";
+          setError(msg);
+          toast.error(msg);
+        }
+      },
+      onError: (err) => {
+        setError(err.message);
+        toast.error(
+          (err.graphQLErrors[0]?.extensions?.detail as string) ||
+            "Failed to login with Google"
+        );
+      },
+    }
+  );
 
   // Handle Google session after OAuth redirect
   React.useEffect(() => {
     const handleGoogleSession = async () => {
       if (session?.id_token) {
-        
-          await googleLogin({
-            variables: {
-              input: {
-                idToken: session.id_token
-              }
-            }
-          });
-         
+        await googleLogin({
+          variables: {
+            input: {
+              idToken: session.id_token,
+            },
+          },
+        });
       }
     };
 
@@ -84,9 +94,9 @@ export default function LoginForm() {
 
   const handleGoogleLogin = async () => {
     try {
-      await signIn("google", { 
+      await signIn("google", {
         callbackUrl: "/auth",
-        redirect: false
+        redirect: false,
       });
     } catch (error) {
       toast.error("Failed to login with Google");

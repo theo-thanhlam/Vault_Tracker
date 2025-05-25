@@ -35,7 +35,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { CREATE_CATEGORY_MUTATION, UPDATE_CATEGORY_MUTATION } from "@/lib/graphql/category/gql";
+import {
+  CREATE_CATEGORY_MUTATION,
+  UPDATE_CATEGORY_MUTATION,
+} from "@/lib/graphql/category/gql";
 import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/queries";
 import { CategoryTypeEnum, Category } from "@/types/category";
 
@@ -69,7 +72,7 @@ interface CategoryFormProps {
 // Helper component to render level indicator
 function LevelIndicator({ level }: { level: number }) {
   if (level === 0) return null;
-  
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -92,17 +95,19 @@ function LevelIndicator({ level }: { level: number }) {
 }
 
 // Helper function to build category hierarchy
-function buildCategoryHierarchy(categories: Category[]): CategoryWithChildren[] {
+function buildCategoryHierarchy(
+  categories: Category[]
+): CategoryWithChildren[] {
   const categoryMap = new Map<string, CategoryWithChildren>();
   const rootCategories: CategoryWithChildren[] = [];
 
   // First pass: create map of all categories with empty children arrays
-  categories.forEach(category => {
+  categories.forEach((category) => {
     categoryMap.set(category.id, { ...category, children: [] });
   });
 
   // Second pass: build hierarchy
-  categories.forEach(category => {
+  categories.forEach((category) => {
     const categoryWithChildren = categoryMap.get(category.id)!;
     if (category.parentId && categoryMap.has(category.parentId)) {
       const parent = categoryMap.get(category.parentId)!;
@@ -123,41 +128,48 @@ function calculateCategoryLevels(categories: Category[]): {
   const levels = new Map<string, number>();
   const categoryMap = new Map<string, Category>();
   let hasInvalidLevels = false;
-  
+
   // First, create a map of all categories for easy lookup
-  categories.forEach(category => {
+  categories.forEach((category) => {
     categoryMap.set(category.id, category);
     levels.set(category.id, 0);
   });
 
   // Then, calculate the actual level for each category
-  categories.forEach(category => {
+  categories.forEach((category) => {
     let currentCategory = category;
     let level = 0;
     const visited = new Set<string>(); // To detect cycles
-    
+
     // Traverse up the parent chain until we reach a root category
-    while (currentCategory.parentId && categoryMap.has(currentCategory.parentId)) {
+    while (
+      currentCategory.parentId &&
+      categoryMap.has(currentCategory.parentId)
+    ) {
       // Check for cycles
       if (visited.has(currentCategory.id)) {
-        console.error(`Cycle detected in category hierarchy: ${currentCategory.id}`);
+        console.error(
+          `Cycle detected in category hierarchy: ${currentCategory.id}`
+        );
         hasInvalidLevels = true;
         break;
       }
-      
+
       visited.add(currentCategory.id);
       level++;
-      
+
       // Check if level exceeds maximum
       if (level > MAX_CATEGORY_LEVEL) {
-        console.error(`Category ${currentCategory.id} exceeds maximum level of ${MAX_CATEGORY_LEVEL}`);
+        console.error(
+          `Category ${currentCategory.id} exceeds maximum level of ${MAX_CATEGORY_LEVEL}`
+        );
         hasInvalidLevels = true;
         break;
       }
-      
+
       currentCategory = categoryMap.get(currentCategory.parentId)!;
     }
-    
+
     levels.set(category.id, level);
   });
 
@@ -165,31 +177,31 @@ function calculateCategoryLevels(categories: Category[]): {
 }
 
 // Helper component to render category hierarchy in select
-function CategoryOption({ 
-  category, 
+function CategoryOption({
+  category,
   level = 0,
   categoryLevels,
-  onSelect
-}: { 
-  category: CategoryWithChildren, 
-  level?: number,
-  categoryLevels: Map<string, number>,
-  onSelect?: (category: CategoryWithChildren) => void
+  onSelect,
+}: {
+  category: CategoryWithChildren;
+  level?: number;
+  categoryLevels: Map<string, number>;
+  onSelect?: (category: CategoryWithChildren) => void;
 }) {
   const actualLevel = categoryLevels.get(category.id) || 0;
   const isMaxLevel = actualLevel >= MAX_CATEGORY_LEVEL;
   const indentSize = 12; // pixels of indentation per level
-  
+
   return (
     <>
-      <SelectItem 
+      <SelectItem
         value={category.id}
         disabled={isMaxLevel}
         onSelect={() => onSelect?.(category)}
       >
         <div className="flex items-center">
           <div style={{ marginLeft: `${actualLevel * indentSize}px` }}>
-            <span className={isMaxLevel ? "text-muted-foreground" : ""} >
+            <span className={isMaxLevel ? "text-muted-foreground" : ""}>
               {category.name}
             </span>
             {/* <LevelIndicator level={actualLevel} /> */}
@@ -197,10 +209,10 @@ function CategoryOption({
         </div>
       </SelectItem>
       {category.children.map((child) => (
-        <CategoryOption 
-          key={child.id} 
-          category={child} 
-          level={level + 1} 
+        <CategoryOption
+          key={child.id}
+          category={child}
+          level={level + 1}
           categoryLevels={categoryLevels}
           onSelect={onSelect}
         />
@@ -214,29 +226,35 @@ const TOP_LEVEL_CATEGORY_VALUE = "TOP_LEVEL";
 
 export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Fetch existing categories for parent selection
   const { data: categoriesData } = useQuery(GET_CATEGORIES_QUERY);
-  const categories = categoriesData?.category?.getCategory?.values || [];
-  
+  const categories = categoriesData?.category?.getAllCategories?.values || [];
+
   // Create form schema with validation
-  const formSchema = useMemo(() => 
-    baseFormSchema.refine((data) => {
-      // Additional validation to ensure parent category type matches
-      if (data.parentId && data.type) {
-        const parentCategory = categories.find((cat: Category) => cat.id === data.parentId);
-        if (parentCategory && parentCategory.type !== data.type) {
-          return false;
+  const formSchema = useMemo(
+    () =>
+      baseFormSchema.refine(
+        (data) => {
+          // Additional validation to ensure parent category type matches
+          if (data.parentId && data.type) {
+            const parentCategory = categories.find(
+              (cat: Category) => cat.id === data.parentId
+            );
+            if (parentCategory && parentCategory.type !== data.type) {
+              return false;
+            }
+          }
+          return true;
+        },
+        {
+          message: "Subcategory type must match parent category type",
+          path: ["type"],
         }
-      }
-      return true;
-    }, {
-      message: "Subcategory type must match parent category type",
-      path: ["type"],
-    }),
+      ),
     [categories]
   );
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
@@ -248,7 +266,10 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
   });
 
   // Build category hierarchy
-  const categoryHierarchy = useMemo(() => buildCategoryHierarchy(categories), [categories]);
+  const categoryHierarchy = useMemo(
+    () => buildCategoryHierarchy(categories),
+    [categories]
+  );
 
   // Calculate category levels
   const { levels: categoryLevels, hasInvalidLevels } = useMemo(
@@ -267,8 +288,8 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
 
   // Get selected parent category for type validation
   const selectedParentId = form.watch("parentId");
-  const selectedParent = useMemo(() => 
-    categories.find((cat: Category) => cat.id === selectedParentId),
+  const selectedParent = useMemo(
+    () => categories.find((cat: Category) => cat.id === selectedParentId),
     [categories, selectedParentId]
   );
 
@@ -371,7 +392,8 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                 </Select>
                 {selectedParent && (
                   <FormDescription>
-                    Type is locked to match parent category type ({selectedParent.type})
+                    Type is locked to match parent category type (
+                    {selectedParent.type})
                   </FormDescription>
                 )}
                 <FormMessage />
@@ -405,14 +427,20 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                 <Select
                   onValueChange={(value) => {
                     // Convert TOP_LEVEL_CATEGORY_VALUE to undefined for the form
-                    field.onChange(value === TOP_LEVEL_CATEGORY_VALUE ? undefined : value);
+                    field.onChange(
+                      value === TOP_LEVEL_CATEGORY_VALUE ? undefined : value
+                    );
                     // Update type to match parent if selected
                     if (value && value !== TOP_LEVEL_CATEGORY_VALUE) {
-                      const parent = categories.find((cat: Category) => cat.id === value);
+                      const parent = categories.find(
+                        (cat: Category) => cat.id === value
+                      );
                       if (parent) {
                         const parentLevel = categoryLevels.get(parent.id) || 0;
                         if (parentLevel >= MAX_CATEGORY_LEVEL) {
-                          toast.error(`Cannot create subcategories at level ${MAX_CATEGORY_LEVEL}`);
+                          toast.error(
+                            `Cannot create subcategories at level ${MAX_CATEGORY_LEVEL}`
+                          );
                           field.onChange(undefined);
                           return;
                         }
@@ -435,14 +463,17 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                       </div>
                     </SelectItem>
                     {categoryHierarchy.map((category) => (
-                      <CategoryOption 
-                        key={category.id} 
-                        category={category} 
+                      <CategoryOption
+                        key={category.id}
+                        category={category}
                         categoryLevels={categoryLevels}
                         onSelect={(selectedCategory) => {
-                          const level = categoryLevels.get(selectedCategory.id) || 0;
+                          const level =
+                            categoryLevels.get(selectedCategory.id) || 0;
                           if (level >= MAX_CATEGORY_LEVEL) {
-                            toast.error(`Cannot create subcategories at level ${MAX_CATEGORY_LEVEL}`);
+                            toast.error(
+                              `Cannot create subcategories at level ${MAX_CATEGORY_LEVEL}`
+                            );
                           }
                         }}
                       />
@@ -450,12 +481,15 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  {selectedParent 
-                    ? `Creating a subcategory under "${selectedParent.name}" (Level ${categoryLevels.get(selectedParent.id) || 0})`
+                  {selectedParent
+                    ? `Creating a subcategory under "${
+                        selectedParent.name
+                      }" (Level ${categoryLevels.get(selectedParent.id) || 0})`
                     : "Optional: Select a parent category to create a subcategory"}
                   {hasInvalidLevels && (
                     <span className="text-destructive block mt-1">
-                      Some categories exceed the maximum nesting level of {MAX_CATEGORY_LEVEL}
+                      Some categories exceed the maximum nesting level of{" "}
+                      {MAX_CATEGORY_LEVEL}
                     </span>
                   )}
                 </FormDescription>
@@ -488,12 +522,14 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 {initialData ? "Updating..." : "Creating..."}
               </div>
+            ) : initialData ? (
+              "Update Category"
             ) : (
-              initialData ? "Update Category" : "Create Category"
+              "Create Category"
             )}
           </Button>
         </form>
       </Form>
     </motion.div>
   );
-} 
+}
