@@ -7,30 +7,76 @@ from strawberry.scalars import JSON
 
 @strawberry.type
 class CategoryType(BaseType):
-    name:str
-    type:CategoryTypeEnum
-    description:str
+    """
+    GraphQL output type representing a single category.
+
+    Inherits:
+        BaseType: Includes standard fields (id, created_at, updated_at, deleted_at).
+
+    Fields:
+        name (str): Name of the category.
+        type (CategoryTypeEnum): Enum indicating the type of category (e.g., income, expense).
+        description (str): A detailed description of the category.
+        user_id (UUID): ID of the user who owns the category.
+        parent_id (Optional[UUID]): ID of a parent category if it's part of a hierarchy.
+    """
+    name: str
+    type: CategoryTypeEnum
+    description: str
     user_id: UUID
-    parent_id:UUID | None
+    parent_id: UUID | None
+
     
     
 @strawberry.type
 class CategorySuccess(BaseSuccess[CategoryType]):
+    """
+    Success response for single-category mutations (create, update, delete).
+
+    Inherits:
+        BaseSuccess[CategoryType]: Standardized success format for a single CategoryType object.
+    """
     pass
+
     
 @strawberry.type
 class GetCategorySuccess(BaseSuccess[CategoryType]):
-    values:List[CategoryType]
+    """
+    Success response for fetching multiple categories.
+
+    Inherits:
+        BaseSuccess[CategoryType]: Uses CategoryType as the generic.
+
+    Fields:
+        values (List[CategoryType]): A list of categories.
+    """
+    values: List[CategoryType]
+
     
     
     
 class CategoryError(BaseError):
+    """
+    Error response specifically related to category operations.
+
+    Inherits:
+        BaseError: Standard error format with message, code, and optional detail.
+    """
     pass
+
 
 @strawberry.type
 class CategoryTypeSum:
-    type:str
-    total:float
+    """
+    Type representing an aggregated sum grouped by category type.
+
+    Fields:
+        type (str): Category type as a string.
+        total (float): Total value (e.g., total expenses or income) for this type.
+    """
+    type: str
+    total: float
+
 
 @strawberry.type
 class getSumByCategoryTypeSuccess(BaseSuccess[JSON]):

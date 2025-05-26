@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
 
 export const GET_TRANSACTIONS_QUERY = gql`
-  query GetTransactions {
+  query GetTransactions($input:GetAllTransactionsInput!) {
     transaction {
-      getTransactions {
+      getTransactions(input:$input) {
         message
         code
         transactions {

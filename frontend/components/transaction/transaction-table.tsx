@@ -45,7 +45,13 @@ export function TransactionTable() {
 
 
 
-  const { data, loading, refetch } = useQuery(GET_TRANSACTIONS_QUERY, {});
+  const { data, loading, refetch } = useQuery(GET_TRANSACTIONS_QUERY, {
+    variables:{
+      input:{
+        limit:10
+      }
+    }
+  });
 
   const [deleteTransaction] = useMutation(DELETE_TRANSACTION_MUTATION, {
     onCompleted: () => {

@@ -125,6 +125,22 @@ def update_existing_transaction(existing_transaction:TransactionModel,input:Upda
         
 @strawberry.type
 class TransactionMutation(BaseAuthenticatedMutation):
+    """
+    Handles all transaction-related mutations including create, update, and delete.
+
+    Inherits:
+        BaseAuthenticatedMutation: A generic mutation handler with auth checks and CRUD logic.
+
+    Class Attributes:
+        model: The SQLAlchemy model associated with this mutation (`TransactionModel`).
+        success_type: The GraphQL success response type (`TransactionSuccess`).
+        type: The return type for individual transaction instances (`TransactionType`).
+
+    Mutations:
+        create: Adds a new transaction.
+        update: Updates an existing transaction.
+        delete: Performs a soft delete on an existing transaction.
+    """
     model = TransactionModel
     success_type = TransactionSuccess
     type = TransactionType
@@ -132,13 +148,43 @@ class TransactionMutation(BaseAuthenticatedMutation):
     
     @strawberry.mutation
     def create(self, input:CreateTransactionInput, info:strawberry.Info) -> TransactionSuccess:
+        """
+        Creates a new transaction.
+
+        Args:
+            input (CreateTransactionInput): Data required to create the transaction.
+            info (strawberry.Info): GraphQL context containing the authenticated user.
+
+        Returns:
+            TransactionSuccess: Response indicating success and returning the created transaction.
+        """
         return super().create(input, info)
     
     @strawberry.mutation
     def update(self, input:UpdateTransactionInput, info:strawberry.Info) -> TransactionSuccess:
+        """
+        Updates an existing transaction.
+
+        Args:
+            input (UpdateTransactionInput): Data for the transaction to be updated (must include `id`).
+            info (strawberry.Info): GraphQL context.
+
+        Returns:
+            TransactionSuccess: Response with the updated transaction data.
+        """
         return super().update(input, info)
     
     @strawberry.mutation
     def delete(self, input:DeleteTransactionInput, info:strawberry.Info) -> TransactionSuccess:
+        """
+        Performs a soft delete on the specified transaction.
+
+        Args:
+            input (DeleteTransactionInput): Input containing the `id` of the transaction to be deleted.
+            info (strawberry.Info): GraphQL context.
+
+        Returns:
+            TransactionSuccess: Response confirming the deletion.
+        """
         return super().delete(input, info)
         

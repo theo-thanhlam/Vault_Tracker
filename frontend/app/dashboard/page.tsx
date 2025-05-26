@@ -1,4 +1,3 @@
-import React from 'react'
 import { getAuthStatus } from '@/lib/auth'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'

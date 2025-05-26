@@ -93,7 +93,7 @@ class AuthMutation:
 
         
         
-    @strawberry.mutation
+    @strawberry.mutation(description="A typical user login requiring email and password. Return a login token if success else raise error")
     def login(self, input:LoginInput, info:Info) -> AuthSucess:
         if info.context.get("user"):
             raise AuthError(message="This email already logged in", code=status.HTTP_400_BAD_REQUEST)
@@ -126,7 +126,7 @@ class AuthMutation:
 
         return AuthSucess( message="Logged in successfully", code=status.HTTP_200_OK, token=login_token)
     
-    @strawberry.mutation
+    @strawberry.mutation(description="Google login by taking id_token from responded callbacks token from google oauth")
     async def googleLogin(self, input:GoogleLoginInput, info:Info) ->AuthSucess:
         
         
@@ -189,7 +189,7 @@ class AuthMutation:
         response.set_cookie("auth_token", login_token, httponly=True)
         return AuthSucess(token=login_token, message="Logged in successfully", code=status.HTTP_200_OK)
     
-    @strawberry.mutation
+    @strawberry.mutation(description="[Login required] Remove user from context and cookies from response header")
     @login_required
     def logout(self,info:Info)->None:
         user:UserModel = info.context.get('user')
@@ -198,7 +198,7 @@ class AuthMutation:
             response: Response = info.context["response"]
             response.delete_cookie("auth_token")
     
-    @strawberry.mutation
+    @strawberry.mutation(description="Verify user email by taking the register_token sent to email")
     def verify_email(self, input:VerifyEmailInput) -> None:
         # session = db.get_session()
         result = AuthHandler.verify_email(token=input.token)

@@ -6,8 +6,20 @@ from typing import List
 from typing import Optional
 from ..category.types import CategoryType
 
-@strawberry.type
+@strawberry.type(description="Represents a single transaction made by a user.")
 class TransactionType(BaseType):
+    """
+    GraphQL type representing a transaction.
+
+    Attributes:
+        amount (float): The amount of the transaction.
+        description (str): A short description of the transaction.
+        category_id (UUID): The unique identifier for the transaction's category.
+        categoryName (Optional[str]): The name of the category (if available).
+        date (datetime): The date and time the transaction occurred.
+        categoryType (Optional[str]): The type of category, such as 'expense' or 'income' (if available).
+        user_id (UUID): The unique identifier of the user who made the transaction.
+    """
     amount:float
     description:str
     category_id:UUID
@@ -18,19 +30,36 @@ class TransactionType(BaseType):
     user_id:UUID
     
 
-@strawberry.type
+@strawberry.type(description="A response object containing a list of transactions.")
 class GetAllTransactionsResponse(BaseResponse):
+    """
+    GraphQL response type for a list of transactions.
+
+    Attributes:
+        transactions (List[TransactionType]): A list of TransactionType objects.
+    """
     transactions: List[TransactionType]
 
 
        
     
-@strawberry.type
+@strawberry.type(description="Represents a successful response for a single transaction query.")
 class TransactionSuccess(BaseSuccess[TransactionType]):
-    # result:Optional[TransactionType]=None
+    """
+    Response wrapper for a successful transaction-related GraphQL operation.
+
+    Inherits:
+        BaseSuccess[TransactionType]: Provides fields like 'data', 'code', and 'message'.
+    """
     pass
     
     
 
 class TransactionError(BaseError):
-   pass
+    """
+    Represents an error during a transaction-related GraphQL operation.
+
+    Inherits:
+        BaseError: Contains fields such as 'code', 'message', and potentially additional error metadata.
+    """
+    pass

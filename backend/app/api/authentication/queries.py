@@ -10,10 +10,10 @@ from ...utils.handler import login_required
 class UserQueryInput:
     id:UUID
 
-@strawberry.type
+@strawberry.type(description="Handle authentication queries")
 class AuthQuery:
     
-    @strawberry.field
+    @strawberry.field(description="[Login required] Return user information from the context")
     @login_required
     def getCurrentUser(self, info:Info) -> GetUserSuccess:
         
