@@ -7,7 +7,7 @@ from .utils.db import get_engine,get_session
 from .models.base import Base
 from fastapi import Request, HTTPException
 from .utils.handler import JWTHandler
-from .models import UserModel,TokenModel
+from .models.core import UserModel,TokenModel
 from starlette.middleware.sessions import SessionMiddleware
 # from .routers.authentication import auth_router
 

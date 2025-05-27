@@ -1,4 +1,4 @@
-from .base import Base
+from ..base import Base
 from enum import Enum as PyEnum
 from uuid import UUID
 from sqlalchemy import Column, String, UUID, ForeignKey,Enum

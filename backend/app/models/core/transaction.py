@@ -1,4 +1,4 @@
-from .base import BaseModel
+from ..base import BaseModel
 from sqlalchemy import Column, String, Float, DateTime,sql,UUID,ForeignKey,Enum
 
 from sqlalchemy.orm import relationship

@@ -2,7 +2,7 @@ import strawberry
 
 from .types import *
 from ...utils import  db
-from ...models import UserModel,AuthProviderModel, AuthProviderName
+from ...models.core import UserModel,AuthProviderModel, AuthProviderName
 from ...utils.handler import *
 
 from fastapi import   Response
@@ -121,6 +121,7 @@ class AuthMutation:
         #Send login cookies to user (HTTP Only)
         response:Response = info.context["response"]
         response.set_cookie("auth_token", login_token, httponly=True)
+        
         
         
 

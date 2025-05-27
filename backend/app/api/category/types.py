@@ -1,6 +1,8 @@
+from __future__ import annotations 
+
 import strawberry
 from ..base.types import BaseSuccess,BaseType, BaseError, BaseResponse
-from ...models.category import CategoryTypeEnum
+from ...models.core import CategoryTypeEnum
 from uuid import UUID
 from typing import List, Optional, Dict
 from strawberry.scalars import JSON
@@ -18,13 +20,14 @@ class CategoryType(BaseType):
         type (CategoryTypeEnum): Enum indicating the type of category (e.g., income, expense).
         description (str): A detailed description of the category.
         user_id (UUID): ID of the user who owns the category.
-        parent_id (Optional[UUID]): ID of a parent category if it's part of a hierarchy.
+        children (List): sub category 
     """
     name: str
     type: CategoryTypeEnum
     description: str
     user_id: UUID
-    parent_id: UUID | None
+    parent_id:Optional[UUID] = None
+    children: Optional[List["CategoryType"]] = None
 
     
     

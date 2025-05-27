@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, DateTime,sql,Enum
-from .base import Base
+from ..base import Base
 from enum import Enum as PyEnum
 
 

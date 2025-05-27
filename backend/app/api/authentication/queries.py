@@ -2,7 +2,7 @@ import strawberry
 from uuid import UUID
 from strawberry.types import Info
 from .types import *
-from ...models.user import UserModel
+from ...models.core import UserModel
 from ...utils.handler import login_required
 
 

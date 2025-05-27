@@ -2,7 +2,7 @@ import strawberry
 from uuid import UUID
 from .types import *
 from ...utils import db
-from ...models import UserModel
+from ...models.core import UserModel
 from ...utils.handler import DatabaseHandler
 from fastapi import HTTPException,status
 from strawberry import Info

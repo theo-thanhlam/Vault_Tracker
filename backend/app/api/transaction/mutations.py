@@ -6,12 +6,10 @@ from ...utils.handler import login_required, DatabaseHandler
 from strawberry import Info
 from typing import Optional
 import datetime
-from ...models import UserModel,TransactionModel
-from ...models.transaction import transaction_type_list,TransactionTypeEnum
+from ...models.core import TransactionTypeEnum, UserModel,TransactionModel,CategoryModel
 from sqlalchemy import sql
 from typing import Union
 from ..base.types import BaseInput
-from ...models import CategoryModel
 from fastapi import status
 from ..base.mutations import BaseAuthenticatedMutation
 
@@ -38,11 +36,7 @@ class UpdateTransactionInput(BaseInput):
     # type:Optional[str] = None
     
 
-def validate_create_input(input:CreateTransactionInput):
-    errors = []
-    if input.type not in transaction_type_list:
-        errors.append("Type must be 'income', 'expense' or 'other' ")
-    return errors
+
 
 def update_existing_transaction(existing_transaction:TransactionModel,input:UpdateTransactionInput)->TransactionModel:
     parsed_input = input.to_dict()

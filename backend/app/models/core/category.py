@@ -1,5 +1,5 @@
 
-from .base import BaseModel
+from ..base import BaseModel
 from enum import Enum as PyEnum
 from uuid import UUID
 from sqlalchemy import Column, String, UUID, ForeignKey,Enum
@@ -22,7 +22,7 @@ class CategoryModel(BaseModel):
     name = Column(String)
     type = Column(Enum(CategoryTypeEnum), default=CategoryTypeEnum.OTHER)
     description = Column(String, nullable=True)
-    user_id = Column(UUID, ForeignKey("users.id"),nullable=True)
+    user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
     parent_id = Column(UUID, ForeignKey("categories.id"), nullable=True)
     
     category_transaction_relationship = relationship("TransactionModel", back_populates="transaction_category_relationship")

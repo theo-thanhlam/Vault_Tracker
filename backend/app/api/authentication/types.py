@@ -4,7 +4,7 @@ from ..base.types import *
 
 from typing import List
 import strawberry
-from ...models.user import UserRoleEnum
+from ...models.core import UserRoleEnum
 from typing import Optional
 from strawberry.scalars import JSON
 

@@ -1,4 +1,4 @@
-from .base import BaseModel
+from ..base import BaseModel
 from sqlalchemy import Column, String, Enum,Boolean,ForeignKey
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
@@ -28,3 +28,6 @@ class UserModel(BaseModel):
 
     user_transaction_relationship = relationship("TransactionModel",back_populates="transaction_user_relationship", cascade="all, delete-orphan")
     user_categories_relationship = relationship("CategoryModel", back_populates="category_user_relationship", cascade="all, delete-orphan")
+    user_goal_relationship = relationship("GoalModel", back_populates="goal_user_relationship", cascade="all, delete-orphan")
+    user_budget_relationship = relationship("BudgetModel", back_populates="budget_user_relationship", cascade="all, delete-orphan")
+

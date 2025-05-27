@@ -1,7 +1,7 @@
 import bcrypt
 from sqlalchemy import UUID, func
 from sqlalchemy.orm import Session, aliased
-from ..models import *
+from ..models.core import *
 import jwt
 import os
 import datetime

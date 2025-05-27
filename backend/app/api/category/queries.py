@@ -46,6 +46,7 @@ class CategoryQuery:
             None explicitly, but make sure user is authenticated at the middleware level.
         
         Example response: 
+        ```
         {
         "data": {
             "getAllCategories": {
@@ -58,25 +59,68 @@ class CategoryQuery:
                 "type": "INCOME",
                 "description": "Monthly salary",
                 "user_id": "...",
-                "parent_id": null
+                "children": [] | None # Recursive
                 }
             ]
             }
         }
         }
+        ```
 
         """
         session = db.get_session()
         user = info.context.get("user")
         categories = DatabaseHandler.get_all_categories_by_user_id(session, user.id)
+        categories_tree = build_tree(categories)
+        
+        
         
         return GetCategorySuccess(
             code=200, 
             message="Get Category successfully", 
-            values=categories
+            values=categories,
+            
         )    
         
+def build_tree(categories:List[CategoryType]) -> List[CategoryType]:
+    item_dict = {
+        category.id: CategoryType(
+            id=category.id,
+            name=category.name,
+            created_at=category.created_at,
+            deleted_at=category.deleted_at,
+            updated_at=category.updated_at,
+            type=category.type,
+            description=category.description,
+            user_id=category.user_id,
+            children=[]
+        )
+        for category in categories
+    }
+    root_items = []
+
+    for category in categories:
+        node = item_dict[category.id]
+        if category.parent_id:
+            parent_node = item_dict.get(category.parent_id)
+            if parent_node:
+                parent_node.children.append(node)
+        else:
+            root_items.append(node)
     
+    
+    def clean_children(node: CategoryType):
+        if not node.children:
+            node.children = None
+        else:
+            for child in node.children:
+                clean_children(child)
+
+    for root in root_items:
+        clean_children(root)
+        
+    return root_items
+  
 
     
     

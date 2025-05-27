@@ -2,7 +2,7 @@ import redis
 from ..config.redis import redis_config
 from .handler import JWTHandler, DatabaseHandler
 from . import db
-from ..models import UserModel
+from ..models.core import UserModel
 from datetime import datetime
 
 
