@@ -180,9 +180,7 @@ export function TransactionCard({
             </div>
 
             <div className="pt-4 border-t">
-              <p className="text-xs text-muted-foreground">
-                Transaction ID: {transaction.id}
-              </p>
+              
               <p className="text-xs text-muted-foreground">
                 Created: {format(new Date(transaction.createdAt), "PPP")}
               </p>

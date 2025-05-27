@@ -17,6 +17,7 @@ from fastapi import HTTPException
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from strawberry.exceptions import StrawberryGraphQLError
+from typing import List, Tuple
 load_dotenv()
 
 class AuthHandler:
@@ -155,7 +156,32 @@ class DatabaseHandler:
         .all()
         
     @staticmethod
-    def get_total_by_category_type(session:Session, user_id:UUID):
+    def get_total_by_category_type(session:Session, user_id:UUID) -> List[Tuple[str,float]]:
+        
+        """
+        Retrieves the total transaction amount grouped by category type
+        for a specific user, excluding soft-deleted records.
+
+        SQL Equivalent:
+        ----------------
+        ```
+        SELECT categories.type, SUM(transactions.amount) AS total
+        FROM transactions
+        JOIN categories ON transactions.category_id = categories.id
+        WHERE transactions.user_id = '<user_id>'
+            AND transactions.deleted_at IS NULL
+            AND categories.deleted_at IS NULL
+        GROUP BY categories.type;
+        ```
+
+        Args:
+            session (Session): SQLAlchemy session object.
+            user_id (UUID): Unique identifier of the user.
+
+        Returns:
+            List[Tuple[str, float]]: A list of tuples containing category type and total amount.
+        """ 
+        
         return session.query(CategoryModel.type, func.sum(TransactionModel.amount).label("total"))\
             .join(CategoryModel, CategoryModel.id == TransactionModel.category_id)\
             .filter(TransactionModel.user_id == user_id)\

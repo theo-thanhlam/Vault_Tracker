@@ -4,7 +4,16 @@ from ..base.types import *
 
 
 
+@strawberry.type
+class getSumByCategoryTypeSuccess(BaseSuccess[JSON]):
+    pass
+   
+   
+@strawberry.type
+class DashboardType:
+    CategoryTypeSum:Optional[JSON] = strawberry.field(default=None, description="Total expenses groupby category type")
 
-@strawberry.type(description="Return overview dashboard data")
-class GetOverview:
-    total: int
+
+@strawberry.type
+class DashboardSuccess(BaseSuccess[DashboardType]):
+    pass

@@ -78,8 +78,5 @@ class CategoryTypeSum:
     total: float
 
 
-@strawberry.type
-class getSumByCategoryTypeSuccess(BaseSuccess[JSON]):
-    pass
-   
+
     

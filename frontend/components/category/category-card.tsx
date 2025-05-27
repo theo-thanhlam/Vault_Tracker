@@ -163,27 +163,17 @@ export function CategoryCard({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Created</p>
-                <p className="text-sm md:text-base text-muted-foreground">
-                  {format(new Date(createdAt), "PPP")}
+           <div className="pt-4 border-t">
+              
+              <p className="text-xs text-muted-foreground">
+                Created: {format(new Date(createdAt), "PPP")}
+              </p>
+              {updatedAt && (
+                <p className="text-xs text-muted-foreground">
+                  Last Updated: {format(new Date(updatedAt), "PPP")}
                 </p>
-              </div>
+              )}
             </div>
-
-            {updatedAt && (
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Updated</p>
-                  <p className="text-sm md:text-base text-muted-foreground">
-                    {format(new Date(updatedAt), "PPP")}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>

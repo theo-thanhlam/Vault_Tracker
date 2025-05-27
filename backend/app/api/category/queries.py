@@ -76,48 +76,7 @@ class CategoryQuery:
             values=categories
         )    
         
-    @strawberry.field
-    def getSumByCategoryType(self, info:Info, input:TypeInput) -> getSumByCategoryTypeSuccess:
-        """
-        Returns the total amounts grouped by category type (e.g., total income or expense).
-
-        Args:
-            info (Info): GraphQL context containing user.
-            input (TypeInput): Input object specifying the category `type`.
-
-        Returns:
-            getSumByCategoryTypeSuccess: Success object with a dict showing total sums.
-
-        Raises:
-            CategoryError: If any unexpected error occurs during the DB operation.
-        Example response:
-        ```
-        {
-            "data": {
-                "getSumByCategoryType": {
-                    "code": 200,
-                    "message": "Here is sum by category's type",
-                    "values": {
-                        "INCOME": 3000.0,
-                        "EXPENSE": 1500.0
-                    }
-                }
-            }
-        }
-
-        ```
-        """
-        session = db.get_session()
-        user = info.context.get("user")
-        
-        try:
-            type_sum = DatabaseHandler.get_total_by_category_type(session=session, user_id=user.id)
-            type_sum_dict = {k:v for k,v in type_sum}
-        except :
-            raise CategoryError(message="Something wrong", code=400)
-        
-        return getSumByCategoryTypeSuccess(values=type_sum_dict, message="Here is sum by category's type", code=200)
-        
+    
 
     
     
