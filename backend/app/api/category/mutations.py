@@ -1,4 +1,3 @@
-
 import strawberry
 from ..base.types import BaseInput
 from ...models import *
@@ -126,8 +125,35 @@ class CategoryMutation(
         Returns:
             CategorySuccess: Success response with the updated category.
         """
+        session = db.get_session()
+        user = info.context.get("user")
+        existing_category = session.get(self.model, input.id)
+        if not existing_category or existing_category.deleted_at:
+            raise CategoryError(message="Not Found", code=status.HTTP_404_NOT_FOUND)
+        if user.id != existing_category.user_id:
+            raise CategoryError(message = "Unauthorized", code=status.HTTP_401_UNAUTHORIZED)
+
+        # Check for circular reference if parent_id is being updated
+        if input.parent_id is not None:
+            if self.check_circular_reference(session, input.id, input.parent_id):
+                raise CategoryError(
+                    message="Circular reference detected in category hierarchy",
+                    code=status.HTTP_400_BAD_REQUEST
+                )
+
+        parsed_input = input.to_dict()
+        for k,v in parsed_input.items():
+            if v is not None:
+                setattr(existing_category, k, v)
+        existing_category.parent_id = input.parent_id
+        existing_category.updated_at = sql.func.now()
+        session.commit()
+        return self.success_type(
+            code=status.HTTP_200_OK,
+            message='Updated successfully',
+            values= self.type(**existing_category.to_dict())
+        )
         
-        return super().update(input, info)
 
     @strawberry.mutation
     def delete(self, input: DeleteCategoryInput, info: strawberry.Info) -> CategorySuccess:
@@ -142,6 +168,39 @@ class CategoryMutation(
             CategorySuccess: Response indicating successful deletion.
         """
         return super().delete(input, info)
+
+    def check_circular_reference(self, session, category_id: UUID, parent_id: UUID) -> bool:
+        """
+        Check if setting parent_id would create a circular reference in the category tree.
+        
+        Args:
+            session: Database session
+            category_id (UUID): ID of the category being updated
+            parent_id (UUID): Proposed parent category ID
+            
+        Returns:
+            bool: True if circular reference would be created, False otherwise
+        """
+        if not parent_id:
+            return False
+        
+        # Start with the proposed parent
+        current_id = parent_id
+        
+        # Traverse up the tree until we either:
+        # 1. Find the category we're updating (circular reference)
+        # 2. Reach a category with no parent (valid)
+        while current_id:
+            if current_id == category_id:
+                return True
+            
+            parent = session.get(self.model, current_id)
+            if not parent or not parent.parent_id:
+                break
+            
+            current_id = parent.parent_id
+        
+        return False
 
 
 
