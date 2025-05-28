@@ -2,7 +2,7 @@ import strawberry
 from .transaction.mutations import TransactionMutation
 from .category.mutations import CategoryMutation
 from .authentication.mutations import AuthMutation
-
+from .goal.mutations import GoalMutation
 
 
 # @strawberry.type
@@ -51,6 +51,13 @@ class Mutation():
         """
         return AuthMutation()
     
+    @strawberry.field(description="Access goal-related mutations.")
+    def goal(self) -> GoalMutation:
+        """
+        Returns:
+            GoalMutation: An object that exposes goal-related mutation fields.
+        """
+        return GoalMutation()
     
         
     
