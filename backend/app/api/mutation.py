@@ -3,7 +3,7 @@ from .transaction.mutations import TransactionMutation
 from .category.mutations import CategoryMutation
 from .authentication.mutations import AuthMutation
 from .goal.mutations import GoalMutation
-
+from .budget.mutations import BudgetMutation
 
 # @strawberry.type
 # class ProtectedMutation:
@@ -59,5 +59,12 @@ class Mutation():
         """
         return GoalMutation()
     
+    @strawberry.field(description="Access budget-related mutations.")
+    def budget(self) -> BudgetMutation:
+        """
+        Returns:
+            BudgetMutation: An object that exposes budget-related mutation fields.
+        """
+        return BudgetMutation()
         
     
