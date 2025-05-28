@@ -12,4 +12,5 @@ authlib
 itsdangerous
 google-auth
 requests
-strawberry-sqlalchemy-mapper
+strawberry-graphql[fastapi]
+strawberry-graphql[cli]
