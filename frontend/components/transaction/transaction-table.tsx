@@ -33,7 +33,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TransactionForm } from "@/components/transaction/transaction-form";
 import { TransactionTableRow } from "@/components/transaction/transaction-table-row";
 import { TransactionPagination } from "@/components/transaction/transaction-pagination";
-import { GET_TRANSACTIONS_QUERY } from "@/lib/graphql/transaction/queries";
+import { GET_TRANSACTIONS_QUERY } from "@/lib/graphql/transaction/gql";
 import { DELETE_TRANSACTION_MUTATION } from "@/lib/graphql/transaction/mutations";
 import { Transaction } from "@/types/transaction";
 import TransactionTableHeader from "./transaction-table-header";
@@ -70,24 +70,7 @@ export function TransactionTable(props: TransactionTableProps) {
     onError: (error) => {
       toast.error(error.message || "Failed to delete transaction");
     },
-    update: (cache, { data }) => {
-      const deletedId = data?.transaction?.deleteTransaction?.id;
-      if (!deletedId) return;
-
-      // Read the existing transactions from cache
-      const existingTransactions = cache.readQuery({
-        query: GET_TRANSACTIONS_QUERY,
-        variables: {
-          input: {
-            limit: pageSize,
-            offset: (currentPage - 1) * pageSize
-          }
-        }
-      });
-
-      if (!existingTransactions) return;
-      
-    }
+   
   });
 
   const transactions = data?.transaction?.getTransactions?.transactions || [];  

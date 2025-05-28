@@ -16,7 +16,8 @@ export interface Category {
   createdAt: string;
   updatedAt?: string;
   deletedAt?: string;
-  userId: string;
+  children?: Category[];
+  // userId: string;
 }
 
 export interface CategoryFormData {

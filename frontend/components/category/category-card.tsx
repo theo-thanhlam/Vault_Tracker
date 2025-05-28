@@ -29,8 +29,8 @@ import { DELETE_CATEGORY_MUTATION } from "@/lib/graphql/category/gql";
 import { CategoryForm } from "./category-form";
 
 interface CategoryCardProps extends Omit<Category, 'userId'> {
-  onEdit?: (category: Omit<Category, 'userId'>) => void;
-  onDelete?: (category: Omit<Category, 'userId'>) => void;
+  onEdit?: (category: Category) => void;
+  onDelete?: (category: Category) => void;
   onSuccess?: () => void;
 }
 

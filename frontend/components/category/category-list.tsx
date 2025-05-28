@@ -28,26 +28,29 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/queries";
+import { GET_CATEGORY_TREE } from "@/lib/graphql/category/gql";
 import { CategoryCard } from "./category-card";
 import { Category } from "@/types/category";
 import { DELETE_CATEGORY_MUTATION } from "@/lib/graphql/category/gql";
 import { CategoryForm } from "./category-form";
 
-type CategoryWithoutUserId = Omit<Category, "userId">;
+interface ICategoryList{
+  getCategoryTree: () => Promise<Category | null>
+}
 
 export function CategoryList() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] =
-    useState<CategoryWithoutUserId | null>(null);
+    useState<Category | null>(null);
 
-  const { data, loading, error, refetch } = useQuery(GET_CATEGORIES_QUERY, {
+  const { data, loading, error, refetch } = useQuery(GET_CATEGORY_TREE, {
     fetchPolicy: "network-only", // Don't cache the results
   });
 
-  const categories = data?.category?.getAllCategories?.values || [];
+  const categories = data?.category?.getAllCategories?.treeViews || [];
+  
 
   const [deleteCategory] = useMutation(DELETE_CATEGORY_MUTATION, {
     onCompleted: () => {
@@ -60,12 +63,12 @@ export function CategoryList() {
     },
   });
 
-  const handleEdit = (category: CategoryWithoutUserId) => {
+  const handleEdit = (category: Category) => {
     setSelectedCategory(category);
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = (category: CategoryWithoutUserId) => {
+  const handleDelete = (category: Category) => {
     setSelectedCategory(category);
     setIsDeleteDialogOpen(true);
   };

@@ -1,22 +1,80 @@
 import React from 'react'
 import { Transaction } from '@/types/transaction';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { format } from 'date-fns';
+import { DollarSign, Tag, FileText, Calendar, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TransactionDetailProps {
     transaction: Transaction;
 }
 
 const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
+  const amount_display =
+    transaction.categoryType === "expense"
+      ? `- \$${transaction.amount.toFixed(2)}`
+      : `\$${transaction.amount.toFixed(2)}`;
+
   return (
-    <DialogContent className="sm:max-w-[425px]">
-    <DialogHeader>
-            <DialogTitle>Transaction Details</DialogTitle>
-            <DialogDescription>
-              View the complete details of this transaction.
-            </DialogDescription>
-    </DialogHeader>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Transaction Details</DialogTitle>
+        <DialogDescription>
+          View the complete details of this transaction.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="space-y-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-bold text-xl">Amount</DialogTitle>
+          </div>
+          <span className={cn(
+            "text-2xl font-semibold",
+            transaction.categoryType === "expense" ? "text-destructive" : "text-green-600"
+          )}>
+            {amount_display}
+          </span>
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Tag className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-semibold text-xl">Category</DialogTitle>
+          </div>
+          <span className="uppercase text-sm font-light">{transaction.categoryName}</span>
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Tag className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-semibold text-xl">Type</DialogTitle>
+          </div>
+          <span className="uppercase text-sm font-light">{transaction.categoryType}</span>
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <FileText className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-semibold text-xl">Description</DialogTitle>
+          </div>
+          <span className="text-sm font-light">{transaction.description || "No description"}</span>
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-semibold text-xl">Created At</DialogTitle>
+          </div>
+          <span className="text-sm font-light">{format(new Date(transaction.createdAt), "MM/dd/yyyy")}</span>
+        </div>
+        {transaction.updatedAt && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="h-5 w-5 text-primary" />
+              <DialogTitle className="font-semibold text-xl">Updated At</DialogTitle>
+            </div>
+            <span className="text-sm font-light">{format(new Date(transaction.updatedAt), "MM/dd/yyyy")}</span>
+          </div>
+        )}
+      </div>
     </DialogContent>
-          
   )
 }
 

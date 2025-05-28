@@ -54,6 +54,7 @@ class GetCategorySuccess(BaseSuccess[CategoryType]):
         values (List[CategoryType]): A list of categories.
     """
     values: List[CategoryType]
+    tree_views:List[CategoryType]
 
     
     

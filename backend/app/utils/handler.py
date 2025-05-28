@@ -132,6 +132,7 @@ class DatabaseHandler:
         .filter(TransactionModel.deleted_at == None)\
         .join(CategoryModel, CategoryModel.id == TransactionModel.category_id)\
         .filter(CategoryModel.deleted_at == None)\
+        .order_by(TransactionModel.created_at.desc())\
         .limit(limit)\
         .offset(offset)\
         .all()
@@ -193,7 +194,7 @@ class DatabaseHandler:
     
     @staticmethod
     def get_total_transactions_count(session:Session, user_id:UUID) -> int:
-        return session.query(TransactionModel).filter(TransactionModel.user_id == user_id).filter(TransactionModel.deleted_at == None).count()
+        return session.query(TransactionModel).outerjoin(CategoryModel, CategoryModel.id == TransactionModel.category_id).filter(CategoryModel.deleted_at == None).filter(TransactionModel.user_id == user_id).filter(TransactionModel.deleted_at == None).count()
     
 class JWTHandler:
     _SIGNUP_SECRET = os.getenv("SIGNUP_SECRET")

@@ -56,8 +56,9 @@ class BaseAuthenticatedMutation(Generic[TModel, TCreateInput, TUpdateInput, TDel
         parsed_input = input.to_dict()
     
         for k,v in parsed_input.items():
-            if v is not None:
-                setattr(instance, k, v)
+            
+            # if v is not None:
+            setattr(instance, k, v)
         instance.updated_at = sql.func.now()
         return instance
     

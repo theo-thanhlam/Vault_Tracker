@@ -126,6 +126,7 @@ class CategoryMutation(
         Returns:
             CategorySuccess: Success response with the updated category.
         """
+        
         return super().update(input, info)
 
     @strawberry.mutation

@@ -26,4 +26,4 @@ const rscApolloClient = registerApolloClient(async () => {
     }),
   });
 });
-export const { getClient, query, PreloadQuery} = rscApolloClient
+export const { getClient, PreloadQuery} = rscApolloClient

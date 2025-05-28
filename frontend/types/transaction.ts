@@ -7,5 +7,6 @@ export interface Transaction {
   date: string;
   createdAt: string;
   updatedAt: string | null;
+  categoryId: string;
   // userId: string;
 } 
