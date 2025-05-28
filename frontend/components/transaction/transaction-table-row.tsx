@@ -42,7 +42,7 @@ export function TransactionTableRow({
     transaction.categoryType === "expense"
       ? `- \$${transaction.amount.toFixed(2)}`
       : `\$${transaction.amount.toFixed(2)}`;
-
+  const date_display = format(new Date(transaction.date), "LLL wo yyyy HH:mm:ss");
   return (
     <>
       <TableRow>
@@ -57,13 +57,13 @@ export function TransactionTableRow({
           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
             <span>{transaction.categoryName}</span>
             <span className="text-sm text-muted-foreground sm:hidden">
-              {formatDistanceToNow(new Date(transaction.date), { addSuffix: true })}
+              {date_display}
             </span>
           </div>
         </TableCell>
         <TableCell className="hidden uppercase md:table-cell">{transaction.categoryType}</TableCell>
-        <TableCell className="hidden sm:table-cell font-light">
-          {formatDistanceToNow(new Date(transaction.date), { addSuffix: true })}
+        <TableCell className="hidden sm:table-cell text-muted-foreground">
+          {date_display}
         </TableCell>
         <TableCell className="text-right">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-1">

@@ -39,7 +39,7 @@ import {
   CREATE_TRANSACTION_MUTATION,
   UPDATE_TRANSACTION_MUTATION,
 } from "@/lib/graphql/transaction/mutations";
-import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/queries";
+import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/gql";
 import { Category } from "@/types/category";
 import { Transaction } from "@/types/transaction";
 
@@ -179,7 +179,7 @@ export function TransactionForm({
     defaultValues: initialData
       ? {
           amount: initialData.amount,
-          description: initialData.description,
+          description: initialData.description || "",
           categoryId: initialData.categoryId,
           date: new Date(initialData.date),
         }
@@ -262,6 +262,7 @@ export function TransactionForm({
                     placeholder="0.00"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    value={field.value}
                   />
                 </FormControl>
                 <FormMessage />
@@ -277,6 +278,7 @@ export function TransactionForm({
                 <FormLabel>Category</FormLabel>
                 <Select
                   onValueChange={field.onChange}
+                  value={field.value}
                   defaultValue={field.value}
                 >
                   <FormControl>
@@ -352,6 +354,7 @@ export function TransactionForm({
                     placeholder="Transaction description"
                     className="resize-none"
                     {...field}
+                    value={field.value}
                   />
                 </FormControl>
                 <FormMessage />

@@ -39,7 +39,7 @@ import {
   CREATE_CATEGORY_MUTATION,
   UPDATE_CATEGORY_MUTATION,
 } from "@/lib/graphql/category/gql";
-import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/queries";
+import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/gql";
 import { CategoryTypeEnum, Category } from "@/types/category";
 
 // Helper type for category with children
@@ -53,7 +53,7 @@ const baseFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   type: z.nativeEnum(CategoryTypeEnum),
   description: z.string().min(2, "Description must be at least 2 characters"),
-  parentId: z.string().optional(),
+  parentId: z.string().optional().nullable(),  
 });
 
 type FormValues = z.infer<typeof baseFormSchema>;
@@ -94,6 +94,14 @@ function LevelIndicator({ level }: { level: number }) {
   );
 }
 
+// Helper function to convert Category to CategoryWithChildren
+function convertToCategoryWithChildren(category: Category): CategoryWithChildren {
+  return {
+    ...category,
+    children: [],
+  };
+}
+
 // Helper function to build category hierarchy
 function buildCategoryHierarchy(
   categories: Category[]
@@ -103,7 +111,7 @@ function buildCategoryHierarchy(
 
   // First pass: create map of all categories with empty children arrays
   categories.forEach((category) => {
-    categoryMap.set(category.id, { ...category, children: [] });
+    categoryMap.set(category.id, convertToCategoryWithChildren(category));
   });
 
   // Second pass: build hierarchy
@@ -257,12 +265,19 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      name: "",
-      type: CategoryTypeEnum.EXPENSE,
-      description: "",
-      parentId: undefined,
-    },
+    defaultValues: initialData
+      ? {
+          name: initialData.name,
+          type: initialData.type,
+          description: initialData.description || "",
+          parentId: initialData.parentId || null,
+        }
+      : {
+          name: "",
+          type: CategoryTypeEnum.EXPENSE,
+          description: "",
+          parentId: null,
+        },
   });
 
   // Build category hierarchy
@@ -353,7 +368,7 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Category name" {...field} />
+                  <Input placeholder="Category name" {...field} value={field.value} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -371,9 +386,10 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                     field.onChange(value);
                     // Clear parent if type doesn't match
                     if (selectedParent && selectedParent.type !== value) {
-                      form.setValue("parentId", undefined);
+                      form.setValue("parentId", null);
                     }
                   }}
+                  value={field.value}
                   defaultValue={field.value}
                   disabled={!!selectedParent}
                 >
@@ -441,13 +457,14 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                           toast.error(
                             `Cannot create subcategories at level ${MAX_CATEGORY_LEVEL}`
                           );
-                          field.onChange(undefined);
+                          field.onChange(null);
                           return;
                         }
                         form.setValue("type", parent.type);
                       }
                     }
                   }}
+                  value={field.value || TOP_LEVEL_CATEGORY_VALUE}
                   defaultValue={field.value || TOP_LEVEL_CATEGORY_VALUE}
                 >
                   <FormControl>
@@ -509,6 +526,7 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
                     placeholder="Category description"
                     className="resize-none"
                     {...field}
+                    value={field.value}
                   />
                 </FormControl>
                 <FormMessage />

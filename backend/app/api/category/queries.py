@@ -79,6 +79,7 @@ class CategoryQuery:
             code=200, 
             message="Get Category successfully", 
             values=categories,
+            tree_views=categories_tree
             
         )    
         
@@ -90,6 +91,7 @@ def build_tree(categories:List[CategoryType]) -> List[CategoryType]:
             created_at=category.created_at,
             deleted_at=category.deleted_at,
             updated_at=category.updated_at,
+            parent_id=category.parent_id,
             type=category.type,
             description=category.description,
             user_id=category.user_id,

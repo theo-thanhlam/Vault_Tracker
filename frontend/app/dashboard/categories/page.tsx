@@ -4,21 +4,25 @@ import { CategoryList } from '@/components/category/category-list';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { getCategoryTree } from '@/lib/graphql/category/queries';
+import { CategoryTable } from '@/components/category/category-table';
+
 
 export default async function CategoriesPage() {
   
   return (
     <div className="container mx-auto py-6 space-y-6 w-auto">
-      <div className="flex items-center gap-4 flex-col items-start">
+      <div className="flex gap-4 flex-col items-start">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/dashboard" className="flex items-start gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Link>
         </Button>
-        <h1 className="text-xl font-bold md:text-2xl lg:text-3xl">Categories</h1>
+        
       </div>
-      <CategoryList />
+      {/* <CategoryList /> */}
+      <CategoryTable />
     </div>
   );
 }
