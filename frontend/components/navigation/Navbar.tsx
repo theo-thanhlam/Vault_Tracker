@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
   const router = useRouter();
@@ -30,8 +29,8 @@ export default function Navbar() {
     const checkAuthStatus = async () => {
       try {
         const response = await fetch(window.location.pathname);
-        const status = response.headers.get('x-auth-status');
         
+        const status = response.headers.get('x-auth-status');
         setAuthStatus(status === 'authenticated' ? 'authenticated' : 'unauthenticated');
       } catch (error) {
         

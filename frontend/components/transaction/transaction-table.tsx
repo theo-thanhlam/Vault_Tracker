@@ -2,20 +2,22 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import { AnimatePresence } from "framer-motion";
-import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -27,28 +29,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TransactionForm } from "@/components/transaction/transaction-form";
-import { TransactionCard } from "@/components/transaction/transaction-card";
+import { TransactionTableRow } from "@/components/transaction/transaction-table-row";
+import { TransactionPagination } from "@/components/transaction/transaction-pagination";
 import { GET_TRANSACTIONS_QUERY } from "@/lib/graphql/transaction/queries";
 import { DELETE_TRANSACTION_MUTATION } from "@/lib/graphql/transaction/mutations";
 import { Transaction } from "@/types/transaction";
+import TransactionTableHeader from "./transaction-table-header";
 
 interface TransactionTableProps {
   initialTransactions?: Transaction[];
 }
 
-export function TransactionTable() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+const DEFAULT_PAGE_SIZE = 10;
+
+export function TransactionTable(props: TransactionTableProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-
-
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const { data, loading, refetch } = useQuery(GET_TRANSACTIONS_QUERY, {
-    variables:{
-      input:{
-        limit:10
+    variables: {
+      input: {
+        limit: pageSize,
+        offset: (currentPage - 1) * pageSize
       }
     }
   });
@@ -62,9 +70,45 @@ export function TransactionTable() {
     onError: (error) => {
       toast.error(error.message || "Failed to delete transaction");
     },
+    update: (cache, { data }) => {
+      const deletedId = data?.transaction?.deleteTransaction?.id;
+      if (!deletedId) return;
+
+      // Read the existing transactions from cache
+      const existingTransactions = cache.readQuery({
+        query: GET_TRANSACTIONS_QUERY,
+        variables: {
+          input: {
+            limit: pageSize,
+            offset: (currentPage - 1) * pageSize
+          }
+        }
+      });
+
+      if (!existingTransactions) return;
+      
+    }
   });
 
-  const transactions = data?.transaction?.getTransactions?.transactions || [];
+  const transactions = data?.transaction?.getTransactions?.transactions || [];  
+  const totalCount = data?.transaction?.getTransactions?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const toggleRow = (id: string) => {
+    setSelectedRows((prev) =>
+      prev.includes(id)
+        ? prev.filter((rowId) => rowId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleAll = () => {
+    if (selectedRows.length === transactions.length) {
+      setSelectedRows([]);
+    } else {
+      setSelectedRows(transactions.map((t: Transaction) => t.id));
+    }
+  };
 
   const handleEdit = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
@@ -92,61 +136,93 @@ export function TransactionTable() {
     }
   };
 
+  const handleTransactionSuccess = () => {
+    setIsEditDialogOpen(false);
+    refetch();
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedRows([]); // Clear selection when changing pages
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1); // Reset to first page when changing page size
+    setSelectedRows([]); // Clear selection
+  };
+
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-md md:text-xl lg:text-2xl">Recent Transactions</CardTitle>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
-                <span className="hidden md:block">Add Transaction</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Create New Transaction</DialogTitle>
-                <DialogDescription>
-                  Add a new transaction to your account.
-                </DialogDescription>
-              </DialogHeader>
-              <TransactionForm
-                onSuccess={() => {
-                  setIsCreateDialogOpen(false);
-                  refetch();
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[600px] pr-4">
-            <AnimatePresence>
+    <div className="space-y-4">
+      <TransactionTableHeader refetch={refetch} />
+
+      <div className="rounded-md border">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50px] hidden sm:table-cell">
+                  <Checkbox
+                    checked={
+                      transactions.length > 0 &&
+                      selectedRows.length === transactions.length
+                    }
+                    onCheckedChange={toggleAll}
+                    aria-label="Select all"
+                  />
+                </TableHead>
+                <TableHead className="font-bold text-lg">Category</TableHead>
+                <TableHead className="font-bold text-lg hidden sm:table-cell">Type</TableHead>
+                <TableHead className="font-bold text-lg hidden sm:table-cell">Date</TableHead>
+                <TableHead className="text-right font-bold text-lg">Amount</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading ? (
-                <div className="flex items-center justify-center h-32">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                </div>
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    Loading...
+                  </TableCell>
+                </TableRow>
               ) : transactions.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  No transactions found. Create your first transaction!
-                </div>
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    No transactions found.
+                  </TableCell>
+                </TableRow>
               ) : (
-                <div className="space-y-4">
-                  {transactions.map((transaction: Transaction) => (
-                    <TransactionCard
-                      key={transaction.id}
-                      transaction={transaction}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </div>
+                transactions.map((transaction: Transaction) => (
+                  <TransactionTableRow
+                    key={transaction.id}
+                    transaction={transaction}
+                    isSelected={selectedRows.includes(transaction.id)}
+                    onSelect={toggleRow}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))
               )}
-            </AnimatePresence>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="mt-4">
+        {loading ? (
+          <div className="text-center text-muted-foreground">Loading pagination...</div>
+        ) : (
+          <TransactionPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
+      </div>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -160,10 +236,7 @@ export function TransactionTable() {
           {selectedTransaction && (
             <TransactionForm
               initialData={selectedTransaction}
-              onSuccess={() => {
-                setIsEditDialogOpen(false);
-                refetch();
-              }}
+              onSuccess={handleTransactionSuccess}
             />
           )}
         </DialogContent>
@@ -189,6 +262,7 @@ export function TransactionTable() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
-} 
+}
+  

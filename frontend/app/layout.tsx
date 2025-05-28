@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ApolloProvider } from "@/components/providers/apollo";
+import { ApolloWrapper } from "@/components/providers/apollo";
 import { SessionProvider } from "@/components/providers/session";
 // import { AuthProvider } from "@/lib/contexts/auth-context";
 import Navbar from "@/components/navigation/Navbar";
@@ -34,14 +34,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark min-h-screen flex flex-col`}
       >
         <SessionProvider>
-          <ApolloProvider>
+          <ApolloWrapper>
             
               <Navbar />
               <main className="flex-1">
                 {children}
               </main>
             
-          </ApolloProvider>
+          </ApolloWrapper>
           <Toaster />
         </SessionProvider>
       </body>
