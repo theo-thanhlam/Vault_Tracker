@@ -39,6 +39,7 @@ class GetAllTransactionsResponse(BaseResponse):
         transactions (List[TransactionType]): A list of TransactionType objects.
     """
     transactions: List[TransactionType]
+    totalCount: int
 
 
        

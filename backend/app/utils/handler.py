@@ -126,13 +126,14 @@ class DatabaseHandler:
         return session.query(TransactionModel).filter_by(id=id).first()
     
     @staticmethod
-    def get_all_transactions_by_user_id(session:Session, user_id:UUID, limit:int = 10):
+    def get_all_transactions_by_user_id(session:Session, user_id:UUID, limit:int = 10, offset:int = 0):
         return session.query(TransactionModel.id, TransactionModel.amount, TransactionModel.description, CategoryModel.name.label("categoryName"), CategoryModel.type.label("categoryType"), TransactionModel.date, TransactionModel.created_at, TransactionModel.updated_at, TransactionModel.user_id)\
         .filter(user_id == TransactionModel.user_id)\
         .filter(TransactionModel.deleted_at == None)\
         .join(CategoryModel, CategoryModel.id == TransactionModel.category_id)\
         .filter(CategoryModel.deleted_at == None)\
         .limit(limit)\
+        .offset(offset)\
         .all()
     
     @staticmethod
@@ -190,6 +191,9 @@ class DatabaseHandler:
             .group_by(CategoryModel.type)\
             .all()
     
+    @staticmethod
+    def get_total_transactions_count(session:Session, user_id:UUID) -> int:
+        return session.query(TransactionModel).filter(TransactionModel.user_id == user_id).filter(TransactionModel.deleted_at == None).count()
     
 class JWTHandler:
     _SIGNUP_SECRET = os.getenv("SIGNUP_SECRET")

@@ -27,6 +27,7 @@ class GetAllTransactionsInput(BaseInput):
         limit (Optional[int]): The maximum number of transactions to retrieve. Defaults to 10.
     """
     limit: Optional[int] = strawberry.field(default=10, description="The maximum number of transactions to retrieve. Defaults to 10.")
+    offset: Optional[int] = strawberry.field(default=0, description="The maximum number of transactions to retrieve. Defaults to 10.")
     
 
 @strawberry.type
@@ -49,8 +50,9 @@ class TransactionQuery:
         """
         user = info.context.get("user")
         session = db.get_session()
-        user_transactions = DatabaseHandler.get_all_transactions_by_user_id(session=session, user_id=user.id, limit=input.limit)
-        return GetAllTransactionsResponse(transactions=user_transactions, message=f"Here are all {user.firstName} {user.lastName}'s transactions", code=status.HTTP_200_OK)
+        user_transactions = DatabaseHandler.get_all_transactions_by_user_id(session=session, user_id=user.id, limit=input.limit, offset=input.offset)
+        total_count = DatabaseHandler.get_total_transactions_count(session=session, user_id=user.id)
+        return GetAllTransactionsResponse(transactions=user_transactions, message=f"Here are all {user.firstName} {user.lastName}'s transactions", code=status.HTTP_200_OK,totalCount=total_count)
     
     
     @strawberry.field(description="Retrieve details of a specific transaction by its ID.")
