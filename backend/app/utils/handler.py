@@ -115,10 +115,7 @@ class DatabaseHandler:
         try:
             session.add(transaction_doc)
             session.flush()
-            return transaction_doc
-            # session.commit()
-            # session.refresh(transaction_doc)
-            # return transaction_doc
+            session.refresh(transaction_doc)
         except Exception as e:
             print("CREATE EXPENSE ERROR")
             print(e)

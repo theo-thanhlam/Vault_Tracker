@@ -7,15 +7,14 @@ from strawberry.fastapi import GraphQLRouter
 from ..utils import session
 from fastapi import Request, Response
 from jwt import PyJWTError
-
+from fastapi import HTTPException
 
 def get_context(req:Request, res:Response) ->dict:
    token = req.cookies.get("auth_token")
- 
-   try:
-      user = session.get_current_user(token=token)
-   except PyJWTError:
-      user = None
+
+   
+   user = session.get_current_user(token=token)
+   
       
    
       

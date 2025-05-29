@@ -2,7 +2,7 @@ fastapi[standard]
 pydantic
 python-dotenv
 psycopg2-binary
-strawberry-graphql
+# strawberry-graphql
 bcrypt
 redis 
 python-multipart
@@ -14,3 +14,4 @@ google-auth
 requests
 strawberry-graphql[fastapi]
 strawberry-graphql[cli]
+asyncpg
