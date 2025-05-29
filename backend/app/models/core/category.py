@@ -25,9 +25,14 @@ class CategoryModel(BaseModel):
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
     parent_id = Column(UUID, ForeignKey("categories.id"), nullable=True)
     
-    category_transaction_relationship = relationship("TransactionModel", back_populates="transaction_category_relationship")
+    # category_transaction_relationship = relationship("TransactionModel", back_populates="transaction_category_relationship")
+    transactions_categories = relationship("TransactionCategoryModel", back_populates="category")
     category_user_relationship = relationship("UserModel", back_populates="user_categories_relationship")
     self_relationship = relationship("CategoryModel", innerjoin=True)
+    categories_budgets = relationship("CategoryBudgetModel", back_populates="category")
+    categories_goals = relationship("CategoryGoalModel", back_populates="category")
+    
+    
     
     
     

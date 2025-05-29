@@ -30,7 +30,9 @@ class BudgetModel(BaseModel):
     frequency = Column(Enum(BudgetFrequencyEnum), nullable=True)
     start_date = Column(DateTime, default=sql.func.now(), nullable=True)
     end_date = Column(DateTime, default=sql.func.now(), nullable=True)
-    
+
     budget_user_relationship = relationship("UserModel", back_populates="user_budget_relationship")
+    transactions_budgets = relationship("TransactionBudgetModel", back_populates="budget")
+    categories_budgets = relationship("CategoryBudgetModel", back_populates="budget")
     
     

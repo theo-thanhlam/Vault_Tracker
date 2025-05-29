@@ -7,7 +7,10 @@ import os
 
 load_dotenv()
 
+
+
 DATABASE_URL: str = os.getenv("DATABASE_URL")
+
 POOL_SIZE=10
 MAX_OVERFLOW = 20
 POOL_RECYCLE= 1800 # 1800 seconds = 30 minute

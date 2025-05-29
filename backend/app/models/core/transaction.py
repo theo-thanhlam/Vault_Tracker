@@ -19,11 +19,13 @@ class TransactionModel(BaseModel):
 
     amount = Column(Float, nullable=False)
     description = Column(String(200))
-    category_id = Column(UUID, ForeignKey("categories.id"))
+    # category_id = Column(UUID, ForeignKey("categories.id"))
     date = Column(DateTime, default=sql.func.now())
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
     # type = Column(Enum(TransactionTypeEnum))
     
     transaction_user_relationship = relationship("UserModel", back_populates="user_transaction_relationship")
-    transaction_category_relationship = relationship("CategoryModel", back_populates="category_transaction_relationship")
-    
+    # transaction_category_relationship = relationship("CategoryModel", back_populates="category_transaction_relationship")
+    transactions_goals = relationship("TransactionGoalModel", back_populates="transaction") 
+    transactions_budgets = relationship("TransactionBudgetModel", back_populates="transaction")
+    transactions_categories = relationship("TransactionCategoryModel", back_populates="transaction")

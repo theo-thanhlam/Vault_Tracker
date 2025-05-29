@@ -18,8 +18,8 @@ class CreateBudgetInput(BaseInput):
     amount:float
     type:BudgetTypeEnum
     frequency:BudgetFrequencyEnum
-    startDate:Optional[datetime] = None    
-    endDate:Optional[datetime] = None
+    start_date:Optional[datetime] = None    
+    end_date:Optional[datetime] = None
     
 @strawberry.input(description="Input type for updating a budget.")
 class UpdateBudgetInput(BaseInput):
