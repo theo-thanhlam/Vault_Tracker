@@ -2,7 +2,8 @@ import { getAuthStatus } from '@/lib/auth'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FolderTree, Receipt } from 'lucide-react'
+import { FolderTree, Receipt, Target, Wallet } from 'lucide-react'
+import FeatureCard from '@/components/dashboard/feature-card'
 // import { useAuth } from '@/lib/contexts/auth-context'
 
 const DashBoardPage = async () => {
@@ -12,43 +13,31 @@ const DashBoardPage = async () => {
       <h1 className="text-3xl font-bold">Dashboard</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Link href="/dashboard/categories">
-          <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderTree className="h-5 w-5" />
-                Categories
-              </CardTitle>
-              <CardDescription>
-                Manage your transaction categories
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" className="w-full border border-primary">
-                View Categories
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/transactions">
-          <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Receipt className="h-5 w-5" />
-                Transaction
-              </CardTitle>
-              <CardDescription>
-                Manage your transactions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" className="w-full border border-primary">
-                View Transactions
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
+        <FeatureCard
+          title="Categories"
+          description="Manage your transaction categories"
+          icon={<FolderTree className="h-5 w-5" />}
+          href="/dashboard/categories"
+        />
+        <FeatureCard
+          title="Transactions"
+          description="Manage your transactions"
+          icon={<Receipt className="h-5 w-5" />}
+          href="/dashboard/transactions"
+        />
+        <FeatureCard
+          title="Goals"
+          description="Manage your goals"
+          icon={<Target className="h-5 w-5" />}
+          href="/dashboard/goals"
+        />
+        <FeatureCard
+          title="Budget"
+          description="Manage your budget"
+          icon={<Wallet className="h-5 w-5" />}
+          href="/dashboard/budgets"
+        />
+       
       </div>
     </div>
   )
