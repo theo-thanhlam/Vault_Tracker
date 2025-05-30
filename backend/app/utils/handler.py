@@ -114,7 +114,7 @@ class DatabaseHandler:
     def create_new_transaction(session:Session, transaction_doc:TransactionModel):
         try:
             session.add(transaction_doc)
-            session.commit()
+            session.flush()
             session.refresh(transaction_doc)
         except Exception as e:
             print("CREATE EXPENSE ERROR")

@@ -36,6 +36,7 @@ def startup():
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
     
+    
     pass
 
 
@@ -45,7 +46,6 @@ def startup():
 def root():
    
     return {"message": "Hello World"}
-
 
 
 app.include_router(graphql_router, prefix='/api')

@@ -4,7 +4,9 @@ from datetime import datetime
 from uuid import UUID
 from typing import List
 from typing import Optional
-from ..category.types import CategoryType
+from ..category.types import CategoryTypeEnum,CategoryType
+from ..goal.types import GoalType
+from ..budget.types import BudgetType
 
 @strawberry.type(description="Represents a single transaction made by a user.")
 class TransactionType(BaseType):
@@ -22,12 +24,18 @@ class TransactionType(BaseType):
     """
     amount:float
     description:str
-    category_id:UUID
-    categoryName:Optional[str] = None
+    # category_id:UUID
+    # categoryName:Optional[str] = None
+    # categoryType:Optional[str] = None
     date:datetime 
-    categoryType:Optional[str] = None
+    
     # type:TransactionTypeEnum
     user_id:UUID
+    categories:Optional[List[CategoryType]] = None
+    goals:Optional[List[GoalType]] = None
+    budgets:Optional[List[BudgetType]] = None
+    
+
     
 
 @strawberry.type(description="A response object containing a list of transactions.")

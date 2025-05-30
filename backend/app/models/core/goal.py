@@ -23,5 +23,6 @@ class GoalModel(BaseModel):
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
     
     goal_user_relationship = relationship("UserModel", back_populates="user_goal_relationship")
-    
+    transactions_goals = relationship("TransactionGoalModel", back_populates="goal")
+    categories_goals = relationship("CategoryGoalModel", back_populates="goal")
     
