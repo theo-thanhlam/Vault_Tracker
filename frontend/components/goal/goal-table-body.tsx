@@ -1,21 +1,10 @@
-
-
-
 interface GoalTableBodyProps {
-  sortBy: string
-  filter: string
+  sortBy: string;
+  filterBy: string;
 }
 
-const GoalTableBody = ({ sortBy, filter }: GoalTableBodyProps) => {
-  return (
+const GoalTableBody = ({ sortBy, filterBy }: GoalTableBodyProps) => {
+  return <div>GoalTableBody</div>;
+};
 
-
-
-    <div>GoalTableBody</div>
-  )
-}
-
-
-
-
-export default GoalTableBody
+export default GoalTableBody;

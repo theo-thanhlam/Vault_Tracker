@@ -42,3 +42,11 @@ class GoalListType(BaseType):
     
     
     
+@strawberry.type(description="Goal list success type")
+class GetGoalSuccess(BaseSuccess[List[GoalType]]):
+    """
+    Goal list success type
+    """
+    values:List[GoalType]
+    pass
+

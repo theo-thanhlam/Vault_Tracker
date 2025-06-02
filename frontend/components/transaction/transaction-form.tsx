@@ -42,6 +42,7 @@ import {
 import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/gql";
 import { Category } from "@/types/category";
 import { Transaction } from "@/types/transaction";
+import { CategorySelect } from "../category/category-select";
 
 const formSchema = z.object({
   amount: z.number().min(0.01, "Amount must be greater than 0"),
@@ -274,30 +275,11 @@ export function TransactionForm({
             control={form.control}
             name="categoryId"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categoryHierarchy.map((category) => (
-                      <CategoryOption
-                        key={category.id}
-                        category={category}
-                        categoryLevels={categoryLevels}
-                      />
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
+              <CategorySelect
+                categories={categories}
+                value={field.value || undefined}
+                onChange={(value) => field.onChange(value || null)}
+              />
             )}
           />
 

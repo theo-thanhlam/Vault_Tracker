@@ -4,13 +4,29 @@ type AuthMutation {
   Register a new user. Takes user input (first name, last name, email, password), creates a new user in the database, and sends a verification email with a token link
   """
   register(input: RegisterInput!): AuthSucess!
+
+  """
+  A typical user login requiring email and password. Return a login token if success else raise error
+  """
   login(input: LoginInput!): AuthSucess!
+
+  """
+  Google login by taking id_token from responded callbacks token from google oauth
+  """
   googleLogin(input: GoogleLoginInput!): AuthSucess!
+
+  """
+  [Login required] Remove user from context and cookies from response header
+  """
   logout: Void
+
+  """Verify user email by taking the register_token sent to email"""
   verifyEmail(input: VerifyEmailInput!): Void
 }
 
+"""Handle authentication queries"""
 type AuthQuery {
+  """[Login required] Return user information from the context"""
   getCurrentUser: GetUserSuccess!
 }
 
@@ -36,15 +52,71 @@ interface BaseResponse {
   code: Int!
 }
 
+enum BudgetFrequencyEnum {
+  DAILY
+  WEEKLY
+  BI_WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+"""Budget mutation type"""
+type BudgetMutation {
+  """Create a budget"""
+  create(input: CreateBudgetInput!): BudgetSuccess!
+
+  """Update a budget"""
+  update(input: UpdateBudgetInput!): BudgetSuccess!
+
+  """Delete a budget"""
+  delete(input: DeleteBudgetInput!): BudgetSuccess!
+}
+
+"""Budget success type"""
+type BudgetSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Return success values"""
+  values: BudgetType
+}
+
+"""Budget type"""
+type BudgetType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  name: String!
+  description: String!
+  amount: Float!
+  type: BudgetTypeEnum!
+  frequency: BudgetFrequencyEnum!
+  startDate: DateTime
+  endDate: DateTime
+  userId: UUID!
+  categoryId: UUID!
+}
+
+enum BudgetTypeEnum {
+  FIXED
+  FLEXIBLE
+  ROLLING
+  SAVINGS
+}
+
 type CategoryMutation {
   create(input: CreateCategoryInput!): CategorySuccess!
   update(input: UpdateCategoryInput!): CategorySuccess!
   delete(input: DeleteCategoryInput!): CategorySuccess!
 }
 
-"""Handles category-related mutations"""
+"""Handles category-related queries"""
 type CategoryQuery {
-  getCategory: CategorySuccess!
+  getAllCategories: GetCategorySuccess!
 }
 
 type CategorySuccess implements BaseResponse {
@@ -68,6 +140,7 @@ type CategoryType {
   description: String!
   userId: UUID!
   parentId: UUID
+  children: [CategoryType!]
 }
 
 enum CategoryTypeEnum {
@@ -79,11 +152,34 @@ enum CategoryTypeEnum {
   OTHER
 }
 
+"""Input type for creating a budget."""
+input CreateBudgetInput {
+  name: String!
+  description: String!
+  amount: Float!
+  type: BudgetTypeEnum!
+  frequency: BudgetFrequencyEnum!
+  startDate: DateTime = null
+  endDate: DateTime = null
+  categoryId: UUID!
+}
+
 input CreateCategoryInput {
   name: String!
   type: CategoryTypeEnum!
   description: String!
   parentId: UUID = null
+}
+
+"""Input type for creating a goal."""
+input CreateGoalInput {
+  name: String!
+  description: String!
+  target: Float!
+  startDate: DateTime!
+  endDate: DateTime!
+  categoryId: UUID!
+  status: GoalProgressStatusEnum!
 }
 
 input CreateTransactionInput {
@@ -93,10 +189,41 @@ input CreateTransactionInput {
   date: DateTime = null
 }
 
+"""Handle dashboard data"""
+type DashboardQuery {
+  getSumByCategoryType: DashboardSuccess!
+}
+
+type DashboardSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Return success values"""
+  values: DashboardType
+}
+
+type DashboardType {
+  """Total expenses groupby category type"""
+  CategoryTypeSum: JSON
+}
+
 """Date with time (isoformat)"""
 scalar DateTime
 
+"""Input type for deleting a budget."""
+input DeleteBudgetInput {
+  id: UUID!
+}
+
 input DeleteCategoryInput {
+  id: UUID!
+}
+
+"""Input type for deleting a goal."""
+input DeleteGoalInput {
   id: UUID!
 }
 
@@ -104,16 +231,51 @@ input DeleteTransactionInput {
   id: UUID!
 }
 
-type GetAllTransactionResponse implements BaseResponse {
+"""
+Input object for retrieving all transactions associated with the current user
+"""
+input GetAllTransactionsInput {
+  """The maximum number of transactions to retrieve. Defaults to 10."""
+  limit: Int = 10
+
+  """The maximum number of transactions to retrieve. Defaults to 10."""
+  offset: Int = 0
+}
+
+"""A response object containing a list of transactions."""
+type GetAllTransactionsResponse implements BaseResponse {
   """Success message"""
   message: String!
 
   """HTTP status code"""
   code: Int!
   transactions: [TransactionType!]!
+  totalCount: Int!
 }
 
+type GetCategorySuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+  values: [CategoryType!]!
+  treeViews: [CategoryType!]!
+}
+
+"""Goal list success type"""
+type GetGoalSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+  values: [GoalType!]!
+}
+
+"""Input object for retrieving a single transaction"""
 input GetTransactionInput {
+  """The unique identifier of the transaction."""
   transactionId: UUID!
 }
 
@@ -126,6 +288,59 @@ type GetUserSuccess implements BaseResponse {
 
   """Return success values"""
   values: UserType
+}
+
+"""Goal mutation type"""
+type GoalMutation {
+  """Create a goal"""
+  create(input: CreateGoalInput!): GoalSuccess!
+
+  """Update a goal"""
+  update(input: UpdateGoalInput!): GoalSuccess!
+
+  """Delete a goal"""
+  delete(input: DeleteGoalInput!): GoalSuccess!
+}
+
+enum GoalProgressStatusEnum {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+"""Handles goal-related queries"""
+type GoalQuery {
+  getAllGoals: GetGoalSuccess!
+}
+
+"""Goal success type"""
+type GoalSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+
+  """Return success values"""
+  values: GoalType
+}
+
+"""Goal type"""
+type GoalType {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+  name: String!
+  description: String!
+  target: Float!
+  startDate: DateTime!
+  endDate: DateTime!
+  status: GoalProgressStatusEnum!
+  userId: UUID!
+  categoryId: UUID!
 }
 
 """Google login"""
@@ -144,16 +359,40 @@ input LoginInput {
   password: String!
 }
 
+"""Root mutation object that provides access to all mutation groups."""
 type Mutation {
+  """Access category-related mutations."""
   category: CategoryMutation!
+
+  """Access transaction-related mutations."""
   transaction: TransactionMutation!
+
+  """Access authentication-related mutations."""
   auth: AuthMutation!
+
+  """Access goal-related mutations."""
+  goal: GoalMutation!
+
+  """Access budget-related mutations."""
+  budget: BudgetMutation!
 }
 
+"""Root query object that provides access to all main query groups."""
 type Query {
+  """Access category-related queries."""
   category: CategoryQuery!
+
+  """Access transaction-related queries."""
   transaction: TransactionQuery!
+
+  """Access authentication-related queries."""
   auth: AuthQuery!
+
+  """Access dashboard-related queries."""
+  dashboard: DashboardQuery!
+
+  """Access goal-related queries."""
+  goal: GoalQuery!
 }
 
 """Input data required to register a new user"""
@@ -171,10 +410,16 @@ type TransactionMutation {
 }
 
 type TransactionQuery {
-  getTransactions: GetAllTransactionResponse!
+  """
+  Retrieve a list of transactions associated with the authenticated user.
+  """
+  getTransactions(input: GetAllTransactionsInput!): GetAllTransactionsResponse!
+
+  """Retrieve details of a specific transaction by its ID."""
   getTransaction(input: GetTransactionInput!): TransactionType!
 }
 
+"""Represents a successful response for a single transaction query."""
 type TransactionSuccess implements BaseResponse {
   """Success message"""
   message: String!
@@ -186,6 +431,7 @@ type TransactionSuccess implements BaseResponse {
   values: TransactionType
 }
 
+"""Represents a single transaction made by a user."""
 type TransactionType {
   id: UUID!
   createdAt: DateTime!
@@ -194,11 +440,26 @@ type TransactionType {
   amount: Float!
   description: String!
   categoryId: UUID!
+  categoryName: String
   date: DateTime!
+  categoryType: String
   userId: UUID!
 }
 
 scalar UUID
+
+"""Input type for updating a budget."""
+input UpdateBudgetInput {
+  id: UUID!
+  name: String = null
+  description: String = null
+  amount: Float = null
+  type: BudgetTypeEnum = null
+  frequency: BudgetFrequencyEnum = null
+  startDate: DateTime = null
+  endDate: DateTime = null
+  categoryId: UUID = null
+}
 
 input UpdateCategoryInput {
   id: UUID!
@@ -206,6 +467,18 @@ input UpdateCategoryInput {
   type: CategoryTypeEnum = null
   description: String = null
   parentId: UUID = null
+}
+
+"""Input type for updating a goal."""
+input UpdateGoalInput {
+  id: UUID!
+  name: String = null
+  description: String = null
+  target: Float = null
+  startDate: DateTime = null
+  endDate: DateTime = null
+  categoryId: UUID = null
+  status: GoalProgressStatusEnum = null
 }
 
 input UpdateTransactionInput {
@@ -227,8 +500,8 @@ type UserType {
   createdAt: DateTime!
   updatedAt: DateTime
   deletedAt: DateTime
-  firstName: String!
-  lastName: String!
+  firstName: String
+  lastName: String
   email: String!
   role: UserRoleEnum!
   emailVerified: Boolean!
