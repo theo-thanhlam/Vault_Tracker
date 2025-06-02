@@ -17,6 +17,7 @@ class GoalType(BaseType):
     end_date:datetime
     status:GoalProgressStatusEnum
     user_id:UUID
+    category_id:UUID
     
 @strawberry.type(description="Goal success type")
 class GoalSuccess(BaseSuccess[GoalType]):
