@@ -18,8 +18,9 @@ class CreateBudgetInput(BaseInput):
     amount:float
     type:BudgetTypeEnum
     frequency:BudgetFrequencyEnum
-    startDate:Optional[datetime] = None    
-    endDate:Optional[datetime] = None
+    start_date:Optional[datetime] = None    
+    end_date:Optional[datetime] = None
+    category_id:UUID
     
 @strawberry.input(description="Input type for updating a budget.")
 class UpdateBudgetInput(BaseInput):
@@ -32,9 +33,9 @@ class UpdateBudgetInput(BaseInput):
     amount:Optional[float] = None
     type:Optional[BudgetTypeEnum] = None
     frequency:Optional[BudgetFrequencyEnum] = None
-    startDate:Optional[datetime] = None
-    endDate:Optional[datetime] = None
-    
+    start_date:Optional[datetime] = None
+    end_date:Optional[datetime] = None
+    category_id:Optional[UUID] = None
 @strawberry.input(description="Input type for deleting a budget.")
 class DeleteBudgetInput(BaseInput):
     """

@@ -16,9 +16,10 @@ class BudgetType(BaseType):
     amount:float
     type:BudgetTypeEnum
     frequency:BudgetFrequencyEnum
-    startDate:Optional[datetime] = None
-    endDate:Optional[datetime] = None
+    start_date:Optional[datetime] = None
+    end_date:Optional[datetime] = None
     user_id:UUID
+    category_id:UUID
 
 @strawberry.type(description="Budget success type")
 class BudgetSuccess(BaseSuccess[BudgetType]):

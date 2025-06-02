@@ -25,6 +25,7 @@ class BudgetModel(BaseModel):
     description = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
+    category_id = Column(UUID, ForeignKey("categories.id"),nullable=False)
     
     type = Column(Enum(BudgetTypeEnum), nullable=True)
     frequency = Column(Enum(BudgetFrequencyEnum), nullable=True)
@@ -32,5 +33,5 @@ class BudgetModel(BaseModel):
     end_date = Column(DateTime, default=sql.func.now(), nullable=True)
     
     budget_user_relationship = relationship("UserModel", back_populates="user_budget_relationship")
-    
+    budget_category_relationship = relationship("CategoryModel", back_populates="category_budget_relationship")
     
