@@ -52,11 +52,6 @@ interface BaseResponse {
   code: Int!
 }
 
-input BudgetAllocationInput {
-  budgetId: UUID!
-  amount: Float!
-}
-
 enum BudgetFrequencyEnum {
   DAILY
   WEEKLY
@@ -201,8 +196,6 @@ input CreateTransactionInput {
   description: String!
   date: DateTime = null
   categories: [CategoryAllocationInput!]!
-  goals: [GoalAllocationInput!] = null
-  budgets: [BudgetAllocationInput!] = null
 }
 
 """Handle dashboard data"""
@@ -294,11 +287,6 @@ type GetUserSuccess implements BaseResponse {
 
   """Return success values"""
   values: UserType
-}
-
-input GoalAllocationInput {
-  goalId: UUID!
-  amount: Float!
 }
 
 type GoalMutation {
@@ -439,8 +427,6 @@ type TransactionType {
   date: DateTime!
   userId: UUID!
   categories: [CategoryType!]
-  goals: [GoalType!]
-  budgets: [BudgetType!]
 }
 
 scalar UUID
@@ -484,8 +470,6 @@ input UpdateTransactionInput {
   description: String = null
   date: DateTime = null
   categories: [CategoryAllocationInput!] = null
-  goals: [GoalAllocationInput!] = null
-  budgets: [BudgetAllocationInput!] = null
 }
 
 enum UserRoleEnum {

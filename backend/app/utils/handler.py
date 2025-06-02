@@ -122,8 +122,8 @@ class DatabaseHandler:
             raise 
     
     @staticmethod
-    def get_transaction_by_id(session:Session, id:str):
-        return session.query(TransactionModel).filter_by(id=id).first()
+    def get_transaction_by_id(session:Session, id:str, user_id:UUID):
+        return session.query(TransactionModel).filter_by(id=id).filter_by(user_id=user_id).first()
     
     @staticmethod
     def get_all_transactions_by_user_id(session:Session, user_id:UUID, limit:int = 10, offset:int = 0):

@@ -16,11 +16,11 @@ class TransactionType(BaseType):
     Attributes:
         amount (float): The amount of the transaction.
         description (str): A short description of the transaction.
-        category_id (UUID): The unique identifier for the transaction's category.
-        categoryName (Optional[str]): The name of the category (if available).
+       
         date (datetime): The date and time the transaction occurred.
         categoryType (Optional[str]): The type of category, such as 'expense' or 'income' (if available).
         user_id (UUID): The unique identifier of the user who made the transaction.
+        categories (Optional[List[CategoryType]]): The categories associated with the transaction.
     """
     amount:float
     description:str
@@ -32,8 +32,8 @@ class TransactionType(BaseType):
     # type:TransactionTypeEnum
     user_id:UUID
     categories:Optional[List[CategoryType]] = None
-    goals:Optional[List[GoalType]] = None
-    budgets:Optional[List[BudgetType]] = None
+    # goals:Optional[List[GoalType]] = None
+    # budgets:Optional[List[BudgetType]] = None
     
 
     
@@ -46,7 +46,7 @@ class GetAllTransactionsResponse(BaseResponse):
     Attributes:
         transactions (List[TransactionType]): A list of TransactionType objects.
     """
-    transactions: List[TransactionType]
+    transactions: List[JSON]
     totalCount: int
 
 

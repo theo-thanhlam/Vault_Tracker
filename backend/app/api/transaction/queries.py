@@ -6,7 +6,9 @@ from ...models.core import UserModel
 from ...utils.handler import DatabaseHandler
 from fastapi import HTTPException,status
 from strawberry import Info
-
+from ...models.core import TransactionModel, CategoryModel
+from ...models.associative import TransactionCategoryModel
+from collections import defaultdict
 
 @strawberry.input(description="Input object for retrieving a single transaction")
 class GetTransactionInput:
@@ -50,9 +52,58 @@ class TransactionQuery:
         """
         user = info.context.get("user")
         session = db.get_session()
-        user_transactions = DatabaseHandler.get_all_transactions_by_user_id(session=session, user_id=user.id, limit=input.limit, offset=input.offset)
-        total_count = DatabaseHandler.get_total_transactions_count(session=session, user_id=user.id)
-        return GetAllTransactionsResponse(transactions=user_transactions, message=f"Here are all {user.firstName} {user.lastName}'s transactions", code=status.HTTP_200_OK,totalCount=total_count)
+        user_transactions = []
+        # user_transactions = DatabaseHandler.get_all_transactions_by_user_id(session=session, user_id=user.id, limit=input.limit, offset=input.offset)
+        query = (
+            session.query(
+                TransactionModel,
+                CategoryModel
+            )
+            .join(TransactionCategoryModel, TransactionModel.id == TransactionCategoryModel.transaction_id)
+            .join(CategoryModel, TransactionCategoryModel.category_id == CategoryModel.id)
+            .filter(
+                TransactionModel.user_id == user.id,
+                TransactionModel.deleted_at.is_(None),
+                # TransactionCategoryModel.deleted_at.is_(None),
+                CategoryModel.deleted_at.is_(None)
+            )
+        )
+        rows = query.all()
+        # Step 2: Group categories per transaction
+        
+        transactions_map = {}
+        categories_group = defaultdict(list)
+
+        for txn, cat in rows:
+            if txn.id not in transactions_map:
+                transactions_map[txn.id] = txn
+            categories_group[txn.id].append({
+                "id": str(cat.id),
+                "name": cat.name,
+                # Add more fields if needed
+            })
+            # Step 3: Format output
+        result = []
+        for txn_id, txn in transactions_map.items():
+            txn_dict = {
+                "id": str(txn.id),
+                "amount": txn.amount,
+                "description": txn.description,
+                "date": txn.date.isoformat(),
+                # Add more fields as needed from TransactionModel
+                "categories": categories_group[txn_id],
+            }
+            result.append(txn_dict)
+
+        # Step 4: Include total count of unique transactions
+        output = {
+            "data": result,
+            "total": len(result)
+        }
+        print(output)
+        
+        # total_count = DatabaseHandler.get_total_transactions_count(session=session, user_id=user.id)
+        return GetAllTransactionsResponse(transactions=output['data'], message=f"Here are all {user.firstName} {user.lastName}'s transactions", code=status.HTTP_200_OK,totalCount=output['total'])
     
     
     @strawberry.field(description="Retrieve details of a specific transaction by its ID.")
