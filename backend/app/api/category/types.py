@@ -24,7 +24,7 @@ class CategoryType(BaseType):
     """
     name: str
     type: CategoryTypeEnum
-    description: str
+    description: Optional[str] = None
     user_id: UUID
     parent_id:Optional[UUID] = None
     children: Optional[List["CategoryType"]] = None

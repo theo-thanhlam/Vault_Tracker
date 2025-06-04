@@ -2,11 +2,13 @@ import strawberry
 from ...models.core.budget import *
 from ..base.types import BaseInput
 from ..base.mutations import BaseAuthenticatedMutation
-from typing import Optional
+from typing import Optional,List
 from uuid import UUID
 from strawberry.types import Info
 from .types import BudgetType,BudgetSuccess,BudgetError
 from datetime import datetime
+
+
 
 @strawberry.input(description="Input type for creating a budget.")
 class CreateBudgetInput(BaseInput):
@@ -58,6 +60,7 @@ class BudgetMutation(BaseAuthenticatedMutation[BudgetModel,CreateBudgetInput,Upd
         """
         Create a budget
         """
+        
         return super().create(input,info)
     
     @strawberry.mutation(description="Update a budget")

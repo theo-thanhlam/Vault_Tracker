@@ -35,7 +35,9 @@ import { CategoryTableRow } from "./category-table-row";
 import { GET_CATEGORY_TREE } from "@/lib/graphql/category/gql";
 import { DELETE_CATEGORY_MUTATION } from "@/lib/graphql/category/gql";
 import { Category } from "@/types/category";
-import CategoryTableHeader from "./category-table-header";
+import CategoryTableSectionHeader from "./category-table-section-header";
+import { EditDialog } from "../form-components/edit-dialog";
+import { DeleteDialog } from "../form-components/delete-dialog";
 
 interface CategoryTableProps {
   initialCategories?: Category[];
@@ -121,7 +123,7 @@ export function CategoryTable(props: CategoryTableProps) {
 
   return (
     <div className="space-y-4">
-      <CategoryTableHeader refetch={refetch} />
+      <CategoryTableSectionHeader refetch={refetch} />
 
       <div className="rounded-md border">
         <div className="overflow-x-auto">
@@ -172,43 +174,29 @@ export function CategoryTable(props: CategoryTableProps) {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-            <DialogDescription>
-              Update category details.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedCategory && (
+     
+      <EditDialog
+        title="Edit Category"
+        description="Update category details"
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        formComponent={
+          selectedCategory && (
             <CategoryForm
               initialData={selectedCategory}
               onSuccess={handleCategorySuccess}
             />
-          )}
-        </DialogContent>
-      </Dialog>
+          )
+        }
+      />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the category and all its subcategories.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onDelete={handleDeleteConfirm}
+        description="This action cannot be undone. This will permanently delete the category and all its subcategories."
+      />
     </div>
   );
 } 

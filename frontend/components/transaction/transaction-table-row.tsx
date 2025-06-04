@@ -42,7 +42,7 @@ export function TransactionTableRow({
     transaction.categoryType === "expense"
       ? `- \$${transaction.amount.toFixed(2)}`
       : `\$${transaction.amount.toFixed(2)}`;
-  const date_display = format(new Date(transaction.date), "LLL wo yyyy HH:mm:ss");
+  const date_display = format(new Date(transaction.date), "LLL do yyyy HH:mm:ss");
   return (
     <>
       <TableRow>

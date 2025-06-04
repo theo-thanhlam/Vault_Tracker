@@ -26,4 +26,6 @@ class TransactionModel(BaseModel):
     
     transaction_user_relationship = relationship("UserModel", back_populates="user_transaction_relationship")
     transaction_category_relationship = relationship("CategoryModel", back_populates="category_transaction_relationship")
+    transaction_budget_association = relationship("TransactionBudgetModel", back_populates="transaction_budget_association")
+    transaction_goal_association = relationship("TransactionGoalModel", back_populates="transaction_goal_association")
     

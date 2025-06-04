@@ -20,7 +20,7 @@ import { Category } from "@/types/category";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import CategoryTableRowDetail from "./category-table-row-detail";
+import CategoryDetail from "./category-detail";
 
 interface CategoryTableRowProps {
   category: Category;
@@ -149,7 +149,7 @@ export function CategoryTableRow({
       ))}
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <CategoryTableRowDetail category={category} />
+        <CategoryDetail category={category} />
       </Dialog>
     </>
   );

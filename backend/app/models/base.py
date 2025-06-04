@@ -27,3 +27,9 @@ class BaseModel(Base):
     created_at = Column(DateTime, server_default=sql.func.now())
     updated_at = Column(DateTime, nullable=True)
     deleted_at = Column(DateTime, nullable=True)
+
+class AssociativeBaseModel(Base):
+    __abstract__ = True
+    created_at = Column(DateTime, server_default=sql.func.now())
+    updated_at = Column(DateTime, nullable=True)
+    deleted_at = Column(DateTime, nullable=True)

@@ -17,7 +17,9 @@ class GoalType(BaseType):
     end_date:datetime
     status:GoalProgressStatusEnum
     user_id:UUID
-    category_id:UUID
+    category_id:Optional[UUID] = None
+    progress:Optional[float] = None
+    current_amount:Optional[float] = None
     
 @strawberry.type(description="Goal success type")
 class GoalSuccess(BaseSuccess[GoalType]):
@@ -48,5 +50,4 @@ class GetGoalSuccess(BaseSuccess[List[GoalType]]):
     Goal list success type
     """
     values:List[GoalType]
-    pass
 

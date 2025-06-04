@@ -29,7 +29,7 @@ const MAX_CATEGORY_LEVEL = 3;
 const TOP_LEVEL_CATEGORY_VALUE = "TOP_LEVEL";
 
 // Helper type for category with children
-type CategoryWithChildren = Category & { children: CategoryWithChildren[] };
+type CategoryWithChildren = Category & { children: CategoryWithChildren[] | [] }; 
 
 // Helper function to convert Category to CategoryWithChildren
 function convertToCategoryWithChildren(
@@ -37,7 +37,7 @@ function convertToCategoryWithChildren(
 ): CategoryWithChildren {
   return {
     ...category,
-    children: [],
+    children: category.children ? category.children.map(convertToCategoryWithChildren) : [],
   };
 }
 
@@ -45,26 +45,8 @@ function convertToCategoryWithChildren(
 function buildCategoryHierarchy(
   categories: Category[]
 ): CategoryWithChildren[] {
-  const categoryMap = new Map<string, CategoryWithChildren>();
-  const rootCategories: CategoryWithChildren[] = [];
-
-  // First pass: create map of all categories with empty children arrays
-  categories.forEach((category) => {
-    categoryMap.set(category.id, convertToCategoryWithChildren(category));
-  });
-
-  // Second pass: build hierarchy
-  categories.forEach((category) => {
-    const categoryWithChildren = categoryMap.get(category.id)!;
-    if (category.parentId && categoryMap.has(category.parentId)) {
-      const parent = categoryMap.get(category.parentId)!;
-      parent.children.push(categoryWithChildren);
-    } else {
-      rootCategories.push(categoryWithChildren);
-    }
-  });
-
-  return rootCategories;
+  // The API already provides the tree structure, so we just need to convert it
+  return categories.map(convertToCategoryWithChildren);
 }
 
 // Helper function to calculate category levels with validation
@@ -73,51 +55,30 @@ function calculateCategoryLevels(categories: Category[]): {
   hasInvalidLevels: boolean;
 } {
   const levels = new Map<string, number>();
-  const categoryMap = new Map<string, Category>();
   let hasInvalidLevels = false;
 
-  // First, create a map of all categories for easy lookup
-  categories.forEach((category) => {
-    categoryMap.set(category.id, category);
-    levels.set(category.id, 0);
-  });
+  // Recursive function to calculate levels
+  function calculateLevel(category: Category, currentLevel: number) {
+    levels.set(category.id, currentLevel);
 
-  // Then, calculate the actual level for each category
-  categories.forEach((category) => {
-    let currentCategory = category;
-    let level = 0;
-    const visited = new Set<string>(); // To detect cycles
-
-    // Traverse up the parent chain until we reach a root category
-    while (
-      currentCategory.parentId &&
-      categoryMap.has(currentCategory.parentId)
-    ) {
-      // Check for cycles
-      if (visited.has(currentCategory.id)) {
-        console.error(
-          `Cycle detected in category hierarchy: ${currentCategory.id}`
-        );
-        hasInvalidLevels = true;
-        break;
-      }
-
-      visited.add(currentCategory.id);
-      level++;
-
-      // Check if level exceeds maximum
-      if (level > MAX_CATEGORY_LEVEL) {
-        console.error(
-          `Category ${currentCategory.id} exceeds maximum level of ${MAX_CATEGORY_LEVEL}`
-        );
-        hasInvalidLevels = true;
-        break;
-      }
-
-      currentCategory = categoryMap.get(currentCategory.parentId)!;
+    if (currentLevel > MAX_CATEGORY_LEVEL) {
+      console.error(
+        `Category ${category.id} exceeds maximum level of ${MAX_CATEGORY_LEVEL}`
+      );
+      hasInvalidLevels = true;
     }
 
-    levels.set(category.id, level);
+    // Process children if they exist
+    if (category.children) {
+      category.children.forEach((child) => {
+        calculateLevel(child, currentLevel + 1);
+      });
+    }
+  }
+
+  // Start with root categories at level 0
+  categories.forEach((category) => {
+    calculateLevel(category, 0);
   });
 
   return { levels, hasInvalidLevels };

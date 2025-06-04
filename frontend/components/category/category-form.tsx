@@ -29,6 +29,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   CREATE_CATEGORY_MUTATION,
+  GET_CATEGORY_TREE,
   UPDATE_CATEGORY_MUTATION,
 } from "@/lib/graphql/category/gql";
 import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/gql";
@@ -60,9 +61,10 @@ export function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch existing categories for parent selection
-  const { data: categoriesData } = useQuery(GET_CATEGORIES_QUERY);
-  const categories = categoriesData?.category?.getAllCategories?.values || [];
+  const { data: categoriesData } = useQuery(GET_CATEGORY_TREE);
+  const categories = categoriesData?.category?.getAllCategories?.treeViews || [];
 
+  
   // Create form schema with validation
   const formSchema = useMemo(
     () =>

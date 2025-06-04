@@ -39,7 +39,7 @@ import {
   CREATE_TRANSACTION_MUTATION,
   UPDATE_TRANSACTION_MUTATION,
 } from "@/lib/graphql/transaction/mutations";
-import { GET_CATEGORIES_QUERY } from "@/lib/graphql/category/gql";
+import { GET_CATEGORIES_QUERY, GET_CATEGORY_TREE } from "@/lib/graphql/category/gql";
 import { Category } from "@/types/category";
 import { Transaction } from "@/types/transaction";
 import { CategorySelect } from "../category/category-select";
@@ -58,102 +58,7 @@ interface TransactionFormProps {
   onSuccess?: () => void;
 }
 
-// Helper type for category with children
-type CategoryWithChildren = Category & { children: CategoryWithChildren[] };
 
-// Helper function to build category hierarchy
-function buildCategoryHierarchy(
-  categories: Category[]
-): CategoryWithChildren[] {
-  const categoryMap = new Map<string, CategoryWithChildren>();
-  const rootCategories: CategoryWithChildren[] = [];
-
-  // First pass: create map of all categories with empty children arrays
-  categories.forEach((category) => {
-    categoryMap.set(category.id, { ...category, children: [] });
-  });
-
-  // Second pass: build hierarchy
-  categories.forEach((category) => {
-    const categoryWithChildren = categoryMap.get(category.id)!;
-    if (category.parentId && categoryMap.has(category.parentId)) {
-      const parent = categoryMap.get(category.parentId)!;
-      parent.children.push(categoryWithChildren);
-    } else {
-      rootCategories.push(categoryWithChildren);
-    }
-  });
-
-  return rootCategories;
-}
-
-// Helper function to calculate category levels
-function calculateCategoryLevels(categories: Category[]): Map<string, number> {
-  const levels = new Map<string, number>();
-  const categoryMap = new Map<string, Category>();
-
-  // First, create a map of all categories for easy lookup
-  categories.forEach((category) => {
-    categoryMap.set(category.id, category);
-    levels.set(category.id, 0);
-  });
-
-  // Then, calculate the actual level for each category
-  categories.forEach((category) => {
-    let currentCategory = category;
-    let level = 0;
-    const visited = new Set<string>(); // To detect cycles
-
-    // Traverse up the parent chain until we reach a root category
-    while (
-      currentCategory.parentId &&
-      categoryMap.has(currentCategory.parentId)
-    ) {
-      if (visited.has(currentCategory.id)) break; // Break if cycle detected
-      visited.add(currentCategory.id);
-      level++;
-      currentCategory = categoryMap.get(currentCategory.parentId)!;
-    }
-
-    levels.set(category.id, level);
-  });
-
-  return levels;
-}
-
-// Helper component to render category option with indentation
-function CategoryOption({
-  category,
-  level = 0,
-  categoryLevels,
-}: {
-  category: CategoryWithChildren;
-  level?: number;
-  categoryLevels: Map<string, number>;
-}) {
-  const actualLevel = categoryLevels.get(category.id) || 0;
-  const indentSize = 12; // pixels of indentation per level
-
-  return (
-    <>
-      <SelectItem value={category.id}>
-        <div className="flex items-center">
-          <div style={{ marginLeft: `${actualLevel * indentSize}px` }}>
-            {category.name}
-          </div>
-        </div>
-      </SelectItem>
-      {category.children.map((child) => (
-        <CategoryOption
-          key={child.id}
-          category={child}
-          level={level + 1}
-          categoryLevels={categoryLevels}
-        />
-      ))}
-    </>
-  );
-}
 
 export function TransactionForm({
   initialData,
@@ -162,18 +67,11 @@ export function TransactionForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch categories for the dropdown
-  const { data: categoriesData } = useQuery(GET_CATEGORIES_QUERY);
-  const categories = categoriesData?.category?.getAllCategories?.values || [];
+  const { data: categoriesData } = useQuery(GET_CATEGORY_TREE);
+  const categories = categoriesData?.category?.getAllCategories?.treeViews || [];
 
   // Build category hierarchy and calculate levels
-  const categoryHierarchy = useMemo(
-    () => buildCategoryHierarchy(categories),
-    [categories]
-  );
-  const categoryLevels = useMemo(
-    () => calculateCategoryLevels(categories),
-    [categories]
-  );
+  
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

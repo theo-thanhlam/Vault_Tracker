@@ -36,7 +36,9 @@ import { TransactionPagination } from "@/components/transaction/transaction-pagi
 import { GET_TRANSACTIONS_QUERY } from "@/lib/graphql/transaction/gql";
 import { DELETE_TRANSACTION_MUTATION } from "@/lib/graphql/transaction/mutations";
 import { Transaction } from "@/types/transaction";
-import TransactionTableHeader from "./transaction-table-header";
+import TransactionTableSectionHeader from "./transaction-table-section-header";
+import { EditDialog } from "../form-components/edit-dialog";
+import { DeleteDialog } from "../form-components/delete-dialog";
 
 interface TransactionTableProps {
   initialTransactions?: Transaction[];
@@ -60,6 +62,7 @@ export function TransactionTable(props: TransactionTableProps) {
       }
     }
   });
+  console.log(data)
 
   const [deleteTransaction] = useMutation(DELETE_TRANSACTION_MUTATION, {
     onCompleted: () => {
@@ -137,7 +140,7 @@ export function TransactionTable(props: TransactionTableProps) {
 
   return (
     <div className="space-y-4">
-      <TransactionTableHeader refetch={refetch} />
+      <TransactionTableSectionHeader refetch={refetch} />
 
       <div className="rounded-md border">
         <div className="overflow-x-auto">
@@ -145,6 +148,7 @@ export function TransactionTable(props: TransactionTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px] hidden sm:table-cell">
+                  {transactions.length > 0 && (
                   <Checkbox
                     checked={
                       transactions.length > 0 &&
@@ -153,6 +157,7 @@ export function TransactionTable(props: TransactionTableProps) {
                     onCheckedChange={toggleAll}
                     aria-label="Select all"
                   />
+                  )}
                 </TableHead>
                 <TableHead className="font-bold text-lg">Category</TableHead>
                 <TableHead className="font-bold text-lg hidden sm:table-cell">Type</TableHead>
@@ -208,43 +213,25 @@ export function TransactionTable(props: TransactionTableProps) {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Transaction</DialogTitle>
-            <DialogDescription>
-              Update transaction details.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedTransaction && (
-            <TransactionForm
-              initialData={selectedTransaction}
-              onSuccess={handleTransactionSuccess}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      
+      <EditDialog
+        title="Edit Transaction"
+        description="Update transaction details"
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        formComponent={selectedTransaction && (
+          <TransactionForm initialData={selectedTransaction} onSuccess={handleTransactionSuccess} />
+        )}
+      />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the transaction.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog 
+      open={isDeleteDialogOpen} 
+      onOpenChange={setIsDeleteDialogOpen} 
+      onDelete={handleDeleteConfirm} 
+      description="This action cannot be undone. This will permanently delete the transaction."
+      />
+      
     </div>
   );
 }

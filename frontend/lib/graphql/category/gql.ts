@@ -124,3 +124,18 @@ query CategoryTree {
   }
 }
 `
+export const GET_CATEGORIES_BY_TYPE_QUERY = gql`
+${Category_fragment}
+${Category_recursive_fragment}
+query GetCategoriesByType($input: TypeInput!) {
+  category {
+    getCategoriesByType(input: $input) {
+      message
+      code
+      treeViews {
+        ...CategoryRecursive
+      }
+    }
+  }
+}
+`

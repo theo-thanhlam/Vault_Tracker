@@ -25,7 +25,7 @@ class BudgetModel(BaseModel):
     description = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
-    category_id = Column(UUID, ForeignKey("categories.id"),nullable=False)
+    category_id = Column(UUID, ForeignKey("categories.id"),nullable=True)
     
     type = Column(Enum(BudgetTypeEnum), nullable=True)
     frequency = Column(Enum(BudgetFrequencyEnum), nullable=True)
@@ -34,4 +34,5 @@ class BudgetModel(BaseModel):
     
     budget_user_relationship = relationship("UserModel", back_populates="user_budget_relationship")
     budget_category_relationship = relationship("CategoryModel", back_populates="category_budget_relationship")
+    budget_transaction_association = relationship("TransactionBudgetModel", back_populates="budget_transaction_association")
     

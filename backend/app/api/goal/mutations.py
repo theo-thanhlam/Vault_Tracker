@@ -18,7 +18,7 @@ class CreateGoalInput(BaseInput):
     target:float
     start_date:datetime
     end_date:datetime
-    category_id:UUID
+    category_id:Optional[UUID] = None
     status:GoalProgressStatusEnum
 
 @strawberry.input(description="Input type for updating a goal.")

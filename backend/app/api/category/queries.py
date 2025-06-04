@@ -6,7 +6,7 @@ from .types import *
 from ...utils import db
 from ...utils.handler import DatabaseHandler
 from ..base.types import BaseInput
-
+from .session_query import get_categories_by_type
 
 @strawberry.input
 class TypeInput(BaseInput):
@@ -82,7 +82,23 @@ class CategoryQuery:
             tree_views=categories_tree
             
         )    
-        
+    
+    @strawberry.field
+    def getCategoriesByType(self, info: Info, input: TypeInput) -> GetCategorySuccess:
+     
+        """
+        Fetches all categories belonging to the authenticated user by type.
+        """
+        session = db.get_session()
+        user = info.context.get("user")
+        categories = get_categories_by_type(session, user.id, input.type)
+        categories_tree = build_tree(categories)
+        return GetCategorySuccess(
+            code=200, 
+            message="Get Category successfully", 
+            values=categories,
+            tree_views=categories_tree
+        )
 def build_tree(categories:List[CategoryType]) -> List[CategoryType]:
     item_dict = {
         category.id: CategoryType(
