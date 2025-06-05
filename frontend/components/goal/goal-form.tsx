@@ -33,8 +33,8 @@ import { toast } from "sonner";
 import { CREATE_GOAL,UPDATE_GOAL, DELETE_GOAL } from "@/lib/graphql/goal/gql";
 import { useMutation, useQuery } from "@apollo/client";
 import { useState } from "react";
-import { CategorySelect } from "@/components/category/category-select";
-import { GET_CATEGORIES_BY_TYPE_QUERY, GET_CATEGORIES_QUERY } from "@/lib/graphql/category/gql";
+import { CategoryMultiSelect } from "@/components/category/category-multi-select";
+import { GET_CATEGORIES_BY_TYPE_QUERY, GET_CATEGORIES_QUERY, GET_CATEGORY_TREE } from "@/lib/graphql/category/gql";
 import { Goal } from "@/types/goal";
 
 const formSchema = z.object({
@@ -56,8 +56,10 @@ const formSchema = z.object({
   status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"], {
     required_error: "Status is required.",
   }),
-  categoryId: z.string().optional(),
+  categories: z.array(z.string()).default([]),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface GoalFormProps {
   initialData?: Goal;
@@ -65,8 +67,7 @@ interface GoalFormProps {
 }
 
 export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false); // loading state
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [createGoal] = useMutation(CREATE_GOAL, {
     onCompleted: (data) => {
@@ -88,40 +89,36 @@ export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
   });
   
 
-  const { data: categoriesData } = useQuery(GET_CATEGORIES_BY_TYPE_QUERY, {
-    variables: {
-      input: {
-        type: "INCOME",
-      },
-    },
-  });
-  const categories = categoriesData?.category?.getCategoriesByType?.treeViews || [];
+  const { data: categoriesData } = useQuery(GET_CATEGORY_TREE);
+  const categories = categoriesData?.category?.getAllCategories?.treeViews || [];
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues:initialData?
-    {
-      name: initialData.name,
-      description: initialData.description,
-      target: initialData.target.toString(),
-      status: initialData.status as "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "FAILED",
-      categoryId: initialData.categoryId,
-      startDate: new Date(initialData.startDate),
-      endDate: new Date(initialData.endDate),
-    }:
-    {
-      name: "",
-      description: "",
-      target: "",
-      status: "IN_PROGRESS",
-      categoryId: undefined,
-    },
+    defaultValues: initialData
+      ? {
+          name: initialData.name,
+          description: initialData.description,
+          target: initialData.target.toString(),
+          status: initialData.status as "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "FAILED",
+          categories: initialData.categories?.map(category => category.id) || [],
+          startDate: new Date(initialData.startDate),
+          endDate: new Date(initialData.endDate),
+        }
+      : {
+          name: "",
+          description: "",
+          target: "",
+          status: "IN_PROGRESS",
+          categories: [],
+          startDate: undefined,
+          endDate: undefined,
+        },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     try {
       setIsSubmitting(true);
-      if (initialData) {
+        if (initialData) {
         await updateGoal({
           variables: {
             input: {
@@ -130,6 +127,7 @@ export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
               target: parseFloat(values.target),
               startDate: values.startDate,
               endDate: values.endDate,
+              categories: values.categories,
             },
           },
         });
@@ -141,6 +139,7 @@ export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
               target: parseFloat(values.target),
               startDate: values.startDate,
               endDate: values.endDate,
+              categories: values.categories,
             },
           },
         });
@@ -316,14 +315,17 @@ export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
 
           <FormField
             control={form.control}
-            name="categoryId"
+            name="categories"
             render={({ field }) => (
               <FormItem>
-                <CategorySelect
-                  categories={categories}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
+                <FormLabel>Categories</FormLabel>
+                <FormControl>
+                  <CategoryMultiSelect
+                    categories={categories}
+                    value={field.value || []}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

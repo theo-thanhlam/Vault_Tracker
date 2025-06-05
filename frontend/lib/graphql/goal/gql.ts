@@ -15,6 +15,7 @@ export const CREATE_GOAL = gql`
           endDate
           status
           userId
+          categories
         }
       }
     }
@@ -23,27 +24,36 @@ export const CREATE_GOAL = gql`
 
 export const GET_ALL_GOALS = gql`
   query MyQuery {
-  goal {
-    getAllGoals {
-      code
-      message
-      values {
-        id
-        name
-        status
-        target
-        updatedAt
-        progress
-        categoryId
-        createdAt
-        description
-        endDate
-        startDate
-        currentAmount
+    goal {
+      getAllGoals {
+        code
+        message
+        values {
+          id
+          name
+          status
+          target
+          updatedAt
+          progress
+          categories {
+            id
+            name
+            type
+            description
+            parentId
+            createdAt
+            updatedAt
+            deletedAt
+          }
+          createdAt
+          description
+          endDate
+          startDate
+          currentAmount
+        }
       }
     }
   }
-}
 `
 
 export const UPDATE_GOAL = gql`
@@ -61,6 +71,10 @@ export const UPDATE_GOAL = gql`
           endDate
           status
           userId
+          categories{
+            id
+            name
+          }
         }
       }
     }

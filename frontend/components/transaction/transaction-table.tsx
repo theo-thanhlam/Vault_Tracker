@@ -12,23 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { TransactionForm } from "@/components/transaction/transaction-form";
 import { TransactionTableRow } from "@/components/transaction/transaction-table-row";
@@ -62,7 +46,7 @@ export function TransactionTable(props: TransactionTableProps) {
       }
     }
   });
-  console.log(data)
+
 
   const [deleteTransaction] = useMutation(DELETE_TRANSACTION_MUTATION, {
     onCompleted: () => {

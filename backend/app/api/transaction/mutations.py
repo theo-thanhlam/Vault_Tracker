@@ -12,7 +12,7 @@ from typing import Union
 from ..base.types import BaseInput
 from fastapi import status
 from ..base.mutations import BaseAuthenticatedMutation
-from ...models import GoalModel, TransactionGoalModel
+from ...models import GoalModel
 
 @strawberry.input(description="Input type for creating a transaction goal.")
 class GoalAllocationInput(BaseInput):
@@ -28,7 +28,7 @@ class CreateTransactionInput(BaseInput):
     description:str
     category_id:UUID
     date:Optional[datetime.datetime] = None
-    goals:Optional[List[GoalAllocationInput]] = None
+    # goals:Optional[List[GoalAllocationInput]] = None
     # type:TransactionTypeEnum
     
 @strawberry.input
@@ -42,7 +42,7 @@ class UpdateTransactionInput(BaseInput):
     description:Optional[str] = None
     category_id:Optional[UUID] = None
     date:Optional[datetime.datetime] =None
-    goals:Optional[List[GoalAllocationInput]] = None
+    # goals:Optional[List[GoalAllocationInput]] = None
 
     # type:Optional[str] = None
     
@@ -149,74 +149,7 @@ class TransactionMutation(BaseAuthenticatedMutation[TransactionModel, CreateTran
         Returns:
             TransactionSuccess: Response indicating success and returning the created transaction.
         """
-        session = db.get_session()
-        user: UserModel = info.context.get("user")
-
-        # Validate category exists
-        existing_category: CategoryModel = session.get(CategoryModel, input.category_id)
-        if not existing_category:
-            raise TransactionError(
-                code=status.HTTP_404_NOT_FOUND,
-                message="Not Found",
-                detail="This category does not exist, please choose different category or create a new one"
-            )
-
-        # Create base transaction
-        parsed_input = input.to_dict()
-        new_transaction = TransactionModel(user_id=user.id, 
-                                           amount=parsed_input.get("amount"), 
-                                           category_id=parsed_input.get("category_id"),
-                                           date=parsed_input.get("date"),
-                                           description=parsed_input.get("description")
-                                           )
-        session.add(new_transaction)
-        session.flush()
-        
-        
-        try:    
-            # Handle goal allocations if provided
-            if input.goals:
-                total_goal_amount = sum(goal.amount for goal in input.goals)
-                if total_goal_amount != input.amount:
-                    raise TransactionError(
-                        code=status.HTTP_400_BAD_REQUEST,
-                        message="Invalid Amount",
-                        detail="Total goal allocation amount must match transaction amount"
-                    )
-                
-                # Create goal allocations
-                goals = session.query(GoalModel).filter(GoalModel.id.in_([goal.goal_id for goal in input.goals])).all()
-                if len(goals) != len(input.goals):
-                    raise TransactionError(
-                        code=status.HTTP_404_NOT_FOUND,
-                        message="Not Found",
-                        detail="One or more goals do not exist"
-                    )
-                    
-                # Create goal allocation record
-                for goal in input.goals:
-                    goal_allocation = TransactionGoalModel(
-                        transaction_id=new_transaction.id,
-                        goal_id=goal.goal_id,
-                        amount=goal.amount
-                    )
-                    session.add(goal_allocation)
-        except Exception as e:
-            session.rollback()
-            raise TransactionError(
-                code=status.HTTP_400_BAD_REQUEST,
-                message="Invalid Amount",
-                detail="Total goal allocation amount must match transaction amount"
-        )   
-        # Save transaction and commit
-        
-        session.commit()
-
-        return TransactionSuccess(
-            code=status.HTTP_201_CREATED,
-            message="Created new transaction successfully",
-            values=TransactionType(**new_transaction.to_dict())
-        )
+        return super().create(input, info)
     
     @strawberry.mutation(description="Update an existing transaction")
     def update(self, input: UpdateTransactionInput, info: strawberry.Info) -> TransactionSuccess:
@@ -233,104 +166,7 @@ class TransactionMutation(BaseAuthenticatedMutation[TransactionModel, CreateTran
         Raises:
             TransactionError: If transaction not found, unauthorized, or invalid goal allocations.
         """
-        session = db.get_session()
-        user: UserModel = info.context.get("user")
-
-        try:
-            # Get existing transaction
-            existing_transaction = session.get(TransactionModel, input.id)
-            if not existing_transaction or existing_transaction.deleted_at:
-                raise TransactionError(
-                    message="Not Found",
-                    code=status.HTTP_404_NOT_FOUND,
-                    detail="This transaction does not exist"
-                )
-
-            # Check ownership
-            if user.id != existing_transaction.user_id:
-                raise TransactionError(
-                    message="Unauthorized",
-                    code=status.HTTP_401_UNAUTHORIZED,
-                    detail="You are not authorized to update this transaction"
-                )
-
-            # Validate category if being updated
-            if input.category_id:
-                existing_category = session.get(CategoryModel, input.category_id)
-                if not existing_category:
-                    raise TransactionError(
-                        code=status.HTTP_404_NOT_FOUND,
-                        message="Not Found",
-                        detail="This category does not exist, please choose different category or create a new one"
-                    )
-
-            # Handle goal allocations if provided
-            if input.goals:
-                # Calculate total amount from goal allocations
-                total_goal_amount = sum(goal.amount for goal in input.goals)
-                
-                # Get the transaction amount (either new or existing)
-                transaction_amount = input.amount if input.amount is not None else existing_transaction.amount
-                
-                # Validate total goal allocation matches transaction amount
-                if total_goal_amount != transaction_amount:
-                    raise TransactionError(
-                        code=status.HTTP_400_BAD_REQUEST,
-                        message="Invalid Amount",
-                        detail="Total goal allocation amount must match transaction amount"
-                    )
-
-                # Delete existing goal allocations
-                session.query(TransactionGoalModel).filter(
-                    TransactionGoalModel.transaction_id == input.id
-                ).delete()
-
-                # Create new goal allocations
-                for goal_allocation in input.goals:
-                    goal = session.get(GoalModel, goal_allocation.goal_id)
-                    if not goal:
-                        raise TransactionError(
-                            code=status.HTTP_404_NOT_FOUND,
-                            message="Not Found",
-                            detail=f"Goal with ID {goal_allocation.goal_id} does not exist"
-                        )
-
-                    # Create new goal allocation
-                    new_goal_allocation = TransactionGoalModel(
-                        transaction_id=input.id,
-                        goal_id=goal_allocation.goal_id,
-                        amount=goal_allocation.amount
-                    )
-                    session.add(new_goal_allocation)
-
-            # Update transaction fields
-            parsed_input = input.to_dict()
-            for key, value in parsed_input.items():
-                if value is not None:
-                    setattr(existing_transaction, key, value)
-            existing_transaction.updated_at = sql.func.now()
-
-            # Commit all changes
-            session.commit()
-
-            return TransactionSuccess(
-                code=status.HTTP_200_OK,
-                message="Updated transaction successfully",
-                values=TransactionType(**existing_transaction.to_dict())
-            )
-
-        except TransactionError as e:
-            # Rollback session on any transaction error
-            session.rollback()
-            raise e
-        except Exception as e:
-            # Rollback session on any unexpected error
-            session.rollback()
-            raise TransactionError(
-                message="Internal Server Error",
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(e)
-            )
+        return super().update(input, info)
     
     @strawberry.mutation(description="Delete a transaction and its associated goal allocations")
     def delete(self, input: DeleteTransactionInput, info: strawberry.Info) -> TransactionSuccess:
@@ -347,54 +183,5 @@ class TransactionMutation(BaseAuthenticatedMutation[TransactionModel, CreateTran
         Raises:
             TransactionError: If transaction not found, unauthorized, or other errors occur.
         """
-        session = db.get_session()
-        user: UserModel = info.context.get("user")
-
-        try:
-            # Get existing transaction
-            existing_transaction = session.get(TransactionModel, input.id)
-            if not existing_transaction or existing_transaction.deleted_at:
-                raise TransactionError(
-                    message="Not Found",
-                    code=status.HTTP_404_NOT_FOUND,
-                    detail="This transaction does not exist"
-                )
-
-            # Check ownership
-            if user.id != existing_transaction.user_id:
-                raise TransactionError(
-                    message="Unauthorized",
-                    code=status.HTTP_401_UNAUTHORIZED,
-                    detail="You are not authorized to delete this transaction"
-                )
-
-            # Soft delete the transaction
-            existing_transaction.deleted_at = sql.func.now()
-            
-            # Soft delete associated goal allocations
-            session.query(TransactionGoalModel).filter(
-                TransactionGoalModel.transaction_id == input.id
-            ).delete()
-            
-            # Commit the changes
-            session.commit()
-
-            return TransactionSuccess(
-                code=status.HTTP_200_OK,
-                message="Transaction deleted successfully",
-                values=TransactionType(**existing_transaction.to_dict())
-            )
-
-        except TransactionError as e:
-            # Rollback session on any transaction error
-            session.rollback()
-            raise e
-        except Exception as e:
-            # Rollback session on any unexpected error
-            session.rollback()
-            raise TransactionError(
-                message="Internal Server Error",
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(e)
-            )
+        return super().delete(input, info)
         

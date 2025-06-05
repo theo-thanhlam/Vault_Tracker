@@ -4,6 +4,10 @@ from ...models.core import GoalProgressStatusEnum
 from typing import List,Optional
 from datetime import datetime   
 from uuid import UUID
+from typing import Optional,List
+from ..category.types import CategoryType
+
+
 
 @strawberry.type(description="Goal type")
 class GoalType(BaseType):
@@ -17,7 +21,7 @@ class GoalType(BaseType):
     end_date:datetime
     status:GoalProgressStatusEnum
     user_id:UUID
-    category_id:Optional[UUID] = None
+    categories:Optional[List[CategoryType]] = None
     progress:Optional[float] = None
     current_amount:Optional[float] = None
     
