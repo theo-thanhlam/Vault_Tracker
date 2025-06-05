@@ -13,11 +13,12 @@ const GoalDetail = ({ goal }: GoalDetailProps) => {
   const end_date_display = format(new Date(goal?.endDate || ""), "LLL wo yyyy ")
   const created_at_display = format(new Date(goal?.createdAt || ""), "LLL wo yyyy ")
   const updated_at_display = goal?.updatedAt ? format(new Date(goal?.updatedAt), "LLL wo yyyy") : null;
+  const progress = Number(((goal?.currentAmount || 0) / (goal?.target || 0) * 100).toFixed(2))
+
   return (
       <DialogContent>
         <DialogHeader>
-          <DialogTitle > {goal?.name || "Goal Details"}</DialogTitle>
-          <DialogDescription>Goal Details</DialogDescription>
+          <DialogTitle > Goal Details</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -31,7 +32,7 @@ const GoalDetail = ({ goal }: GoalDetailProps) => {
           </div>
           <div>
             <DialogTitle className="font-bold text-xl">Progress</DialogTitle>
-            <span className="text-sm text-muted-foreground">{goal?.progress}% ({goal?.currentAmount} / {goal?.target})</span>
+            <span className="text-sm text-muted-foreground">{progress}% ({goal?.currentAmount} / {goal?.target})</span>
           </div>
           <div>
             <DialogTitle className="font-bold text-xl">Start Date</DialogTitle>

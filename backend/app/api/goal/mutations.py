@@ -12,6 +12,7 @@ from ...models.core import CategoryModel
 from ...models.associative import CategoryGoalModel
 from fastapi import status
 from ..category.types import CategoryType
+
 @strawberry.input(description="Input type for creating a goal.")
 class CreateGoalInput(BaseInput):
     """
@@ -22,8 +23,8 @@ class CreateGoalInput(BaseInput):
     target:float
     start_date:datetime
     end_date:datetime
-    categories:Optional[List[UUID]] = None
-    status:GoalProgressStatusEnum
+    categories:List[UUID] 
+    status:GoalStatusEnum
 
 @strawberry.input(description="Input type for updating a goal.")
 class UpdateGoalInput(BaseInput):
@@ -36,8 +37,8 @@ class UpdateGoalInput(BaseInput):
     target:Optional[float] = None
     start_date:Optional[datetime] = None
     end_date:Optional[datetime] = None
-    categories:Optional[List[UUID]] = None
-    status:Optional[GoalProgressStatusEnum] = None
+    categories:List[UUID] 
+    status:Optional[GoalStatusEnum] = None
 
 @strawberry.input(description="Input type for deleting a goal.")
 class DeleteGoalInput(BaseInput):
@@ -64,36 +65,38 @@ class GoalMutation(BaseAuthenticatedMutation[GoalModel,CreateGoalInput,UpdateGoa
         # return super().create(input,info)
         session = db.get_session()
         user = info.context.get("user")
+        if not input.categories:
+            raise GoalError(message="Categories are required", code=status.HTTP_400_BAD_REQUEST)
         if input.categories:
-            categories = session.query(CategoryModel).filter(CategoryModel.id.in_(input.categories)).all()
+            categories = session.query(CategoryModel).filter(CategoryModel.id.in_(input.categories)).filter(CategoryModel.user_id==user.id).filter(CategoryModel.deleted_at==None).all()
             if len(categories) != len(input.categories):
-                raise GoalError(message="One or more categories not found", code=status.HTTP_400_BAD_REQUEST)
+                raise GoalError(message="One or more categories not found", code=status.HTTP_404_NOT_FOUND)
         try:
             new_goal_instance = GoalModel(
-            user_id=user.id, 
-            name=input.name, 
-            description=input.description, 
-            target=input.target, 
-            start_date=input.start_date, 
-            end_date=input.end_date, 
-            status=input.status)
+                user_id=user.id, 
+                name=input.name, 
+                description=input.description, 
+                target=input.target, 
+                start_date=input.start_date, 
+                end_date=input.end_date, 
+                status=input.status
+                )
             session.add(new_goal_instance)
             session.flush()
-            session.refresh(new_goal_instance)
-            
-            
-            
-            if input.categories:
-                for category in categories:
-                    session.add(CategoryGoalModel(category_id=category.id,goal_id=new_goal_instance.id))
-            
+            for category in categories:
+                session.add(CategoryGoalModel(category_id=category.id,goal_id=new_goal_instance.id))
+            session.commit()
+     
+            return GoalSuccess(message="Goal created successfully",
+                           values=GoalType(**new_goal_instance.to_dict(), categories = [CategoryType(**category.to_dict()) for category in categories]), 
+                           code=status.HTTP_201_CREATED)        
+        
         except Exception as e:
             session.rollback()
             raise GoalError(message="Error creating goal", code=status.HTTP_400_BAD_REQUEST)
+        finally:
+            session.close()
         
-        session.commit()
-        session.close()
-        return GoalSuccess(message="Goal created successfully",values=new_goal_instance, code=status.HTTP_201_CREATED)        
             
     @strawberry.mutation(description="Update a goal")
     def update(self, input: UpdateGoalInput, info: Info) -> GoalSuccess:
@@ -112,6 +115,8 @@ class GoalMutation(BaseAuthenticatedMutation[GoalModel,CreateGoalInput,UpdateGoa
         """
         session = db.get_session()
         user = info.context.get("user")
+        if not input.categories:
+            raise GoalError(message="Categories are required", code=status.HTTP_400_BAD_REQUEST)
         
         # Get the goal instance
         goal = session.get(GoalModel, input.id)
@@ -130,34 +135,35 @@ class GoalMutation(BaseAuthenticatedMutation[GoalModel,CreateGoalInput,UpdateGoa
                     setattr(goal, field, value)
             
             # Handle category updates if provided
-            if input.categories is not None:
+           
                 # Verify all categories exist
-                categories = session.query(CategoryModel).filter(CategoryModel.id.in_(input.categories)).all()
-                if len(categories) != len(input.categories):
-                    raise GoalError(message="One or more categories not found", code=status.HTTP_400_BAD_REQUEST)
+            categories = session.query(CategoryModel).filter(CategoryModel.id.in_(input.categories)).filter(CategoryModel.user_id==user.id).filter(CategoryModel.deleted_at==None).all()
+            if len(categories) != len(input.categories):
+                raise GoalError(message="One or more categories not found", code=status.HTTP_400_BAD_REQUEST)
                 
                 # Remove existing category associations
-                session.query(CategoryGoalModel).filter(CategoryGoalModel.goal_id == goal.id).delete()
+            session.query(CategoryGoalModel).filter(CategoryGoalModel.goal_id == goal.id).delete()
                 
                 # Add new category associations
-                for category in categories:
-                    session.add(CategoryGoalModel(category_id=category.id, goal_id=goal.id))
-            else:
-                session.query(CategoryGoalModel).filter(CategoryGoalModel.goal_id == goal.id).delete()
+            for category in categories:
+                session.add(CategoryGoalModel(category_id=category.id, goal_id=goal.id))
+            
             goal.updated_at = datetime.now()
             session.commit()
             session.refresh(goal)
             return GoalSuccess(
                 message="Goal updated successfully",
-                values=GoalType(**goal.to_dict(), categories = [CategoryType(**category.to_dict()) for category in categories]),
-                code=status.HTTP_200_OK
-            )
+                values=GoalType(**goal.to_dict(), categories = [CategoryType(**category.to_dict()) for category in categories]) , 
+                code=status.HTTP_200_OK)
+            
             
         except Exception as e:
             session.rollback()
             raise GoalError(message="Error updating goal", code=status.HTTP_400_BAD_REQUEST)
         finally:
             session.close()
+
+        
     
     @strawberry.mutation(description="Delete a goal")
     def delete(self,input:DeleteGoalInput,info:Info) -> GoalSuccess:

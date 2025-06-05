@@ -1,15 +1,17 @@
 from ..base import BaseModel
-from sqlalchemy import Column, String, Float, DateTime,sql,UUID,ForeignKey,Enum
+from sqlalchemy import Column, String, Float, DateTime,sql,UUID,ForeignKey
+from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 
 
-class GoalProgressStatusEnum(str,PyEnum):
+class GoalStatusEnum(str,PyEnum):
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
     FAILED = "failed"
+    CUSTOM = "custom"
 
 class GoalModel(BaseModel):
     __tablename__ = 'goals'
@@ -19,7 +21,7 @@ class GoalModel(BaseModel):
     target = Column(Float, nullable=False)
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
-    status = Column(Enum(GoalProgressStatusEnum))
+    status = Column(SQLAlchemyEnum(GoalStatusEnum))
     user_id = Column(UUID, ForeignKey("users.id"),nullable=False)
     # category_id = Column(UUID, ForeignKey("categories.id"),nullable=True)
     

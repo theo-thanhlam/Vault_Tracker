@@ -1,6 +1,6 @@
 import strawberry
 from ..base.types import BaseSuccess,BaseType,BaseError,BaseResponse
-from ...models.core import GoalProgressStatusEnum
+from ...models.core import GoalStatusEnum
 from typing import List,Optional
 from datetime import datetime   
 from uuid import UUID
@@ -19,7 +19,7 @@ class GoalType(BaseType):
     target:float
     start_date:datetime
     end_date:datetime
-    status:GoalProgressStatusEnum
+    status:GoalStatusEnum
     user_id:UUID
     categories:Optional[List[CategoryType]] = None
     progress:Optional[float] = None

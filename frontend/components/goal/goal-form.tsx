@@ -56,7 +56,9 @@ const formSchema = z.object({
   status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"], {
     required_error: "Status is required.",
   }),
-  categories: z.array(z.string()).default([]),
+  categories: z.array(z.string()).min(1, {
+    message: "Please select at least one category.",
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -91,6 +93,7 @@ export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
 
   const { data: categoriesData } = useQuery(GET_CATEGORY_TREE);
   const categories = categoriesData?.category?.getAllCategories?.treeViews || [];
+  console.log(categories)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -302,10 +305,12 @@ export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="NOT_STARTED">Not Started</SelectItem>
                     <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
                     <SelectItem value="FAILED">Failed</SelectItem>
                     <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    <SelectItem value="CUSTOM">Custom</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

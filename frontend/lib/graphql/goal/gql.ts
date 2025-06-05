@@ -15,7 +15,10 @@ export const CREATE_GOAL = gql`
           endDate
           status
           userId
-          categories
+          categories{
+            id
+            name
+          }
         }
       }
     }

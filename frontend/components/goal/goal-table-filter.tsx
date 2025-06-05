@@ -35,10 +35,12 @@ const GoalTableFilter = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
+            <SelectItem value="NOT_STARTED">Not Started</SelectItem>    
             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
             <SelectItem value="COMPLETED">Completed</SelectItem>
             <SelectItem value="FAILED">Failed</SelectItem>
             <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            <SelectItem value="CUSTOM">Custom</SelectItem>
 
           </SelectContent>
         </Select>

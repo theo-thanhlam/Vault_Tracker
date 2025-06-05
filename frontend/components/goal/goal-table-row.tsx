@@ -50,8 +50,8 @@ const GoalTableRow = ({ goal, onViewDetails, onEdit, onDelete }: GoalTableRowPro
   const today = new Date()
   const remainingDays = differenceInCalendarDays(endDate, today)
   const status = statusConfig[goal.status as keyof typeof statusConfig]
-  const current_amount = goal.currentAmount
-
+  const progress = Number(((goal.currentAmount / goal.target) * 100).toFixed(2))
+  
 
   return (
     <TableRow>
@@ -63,8 +63,8 @@ const GoalTableRow = ({ goal, onViewDetails, onEdit, onDelete }: GoalTableRowPro
       </TableCell>
       <TableCell>{remainingDays} days</TableCell>
       <TableCell className='flex flex-row justify-start items-center gap-2 '>
-        <Progress value={goal.progress} className="w-[60%]" />
-        <p className="text-sm text-gray-500">{goal.progress}% ({goal.currentAmount} / {goal.target})</p>
+        <Progress value={progress} className="w-[60%]" />
+        <p className="text-sm text-gray-500">{progress}% ({goal.currentAmount} / {goal.target})</p>
       </TableCell>
       <TableCell>
         <DropdownMenu>

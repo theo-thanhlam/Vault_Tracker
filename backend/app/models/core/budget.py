@@ -15,6 +15,7 @@ class BudgetFrequencyEnum(int, PyEnum):
     BI_WEEKLY = 14
     MONTHLY = 30
     YEARLY = 365
+    CUSTOM=0
     
     
 

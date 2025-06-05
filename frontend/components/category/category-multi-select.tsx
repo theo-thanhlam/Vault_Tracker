@@ -27,9 +27,50 @@ export function CategoryMultiSelect({
   value,
   onChange,
 }: CategoryMultiSelectProps) {
-  const selectedCategories = categories.filter((category) =>
-    value.includes(category.id)
-  );
+  // Helper function to find all selected categories including children
+  const findSelectedCategories = (categories: Category[]): Category[] => {
+    return categories.reduce((acc: Category[], category) => {
+      if (value.includes(category.id)) {
+        acc.push(category);
+      }
+      if (category.children) {
+        acc.push(...findSelectedCategories(category.children));
+      }
+      return acc;
+    }, []);
+  };
+
+  const selectedCategories = findSelectedCategories(categories);
+
+  const renderCategoryItem = (category: Category, level: number = 0) => {
+    return (
+      <div key={category.id}>
+        <CommandItem
+          onSelect={() => {
+            const newValue = value.includes(category.id)
+              ? value.filter((id) => id !== category.id)
+              : [...value, category.id];
+            onChange(newValue);
+          }}
+          className="pl-4"
+          style={{ paddingLeft: `${level * 20 + 16}px` }}
+        >
+          <div
+            className={cn(
+              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+              value.includes(category.id)
+                ? "bg-primary text-primary-foreground"
+                : "opacity-50 [&_svg]:invisible"
+            )}
+          >
+            <Check className="h-4 w-4" />
+          </div>
+          {category.name}
+        </CommandItem>
+        {category.children?.map((child) => renderCategoryItem(child, level + 1))}
+      </div>
+    );
+  };
 
   return (
     <Popover>
@@ -61,29 +102,7 @@ export function CategoryMultiSelect({
           <CommandInput placeholder="Search categories..." />
           <CommandEmpty>No categories found.</CommandEmpty>
           <CommandGroup>
-            {categories.map((category) => (
-              <CommandItem
-                key={category.id}
-                onSelect={() => {
-                  const newValue = value.includes(category.id)
-                    ? value.filter((id) => id !== category.id)
-                    : [...value, category.id];
-                  onChange(newValue);
-                }}
-              >
-                <div
-                  className={cn(
-                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                    value.includes(category.id)
-                      ? "bg-primary text-primary-foreground"
-                      : "opacity-50 [&_svg]:invisible"
-                  )}
-                >
-                  <Check className="h-4 w-4" />
-                </div>
-                {category.name}
-              </CommandItem>
-            ))}
+            {categories.map((category) => renderCategoryItem(category))}
           </CommandGroup>
         </Command>
       </PopoverContent>

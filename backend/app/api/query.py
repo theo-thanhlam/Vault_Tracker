@@ -3,6 +3,7 @@ from .category.queries import CategoryQuery
 from .authentication.queries import AuthQuery
 from .dashboard.queries import DashboardQuery
 from .goal.queries import GoalQuery
+from .budget.queries import BudgetQuery
 import strawberry
 
 
@@ -57,5 +58,13 @@ class Query:
             GoalQuery: An object that exposes goal-related query fields.
         """
         return GoalQuery()
+    
+    @strawberry.field(description="Access budget-related queries.")
+    def budget(self) -> BudgetQuery:
+        """
+        Returns:
+            BudgetQuery: An object that exposes budget-related query fields.
+        """
+        return BudgetQuery()
     
     
