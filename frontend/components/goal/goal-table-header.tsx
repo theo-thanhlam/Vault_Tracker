@@ -10,7 +10,7 @@ const GoalTableHeader = () => {
             <TableHead className="font-bold text-md md:text-lg ">Remaining Duration</TableHead>
             <TableHead className="font-bold text-md md:text-lg ">Progress</TableHead>
 
-            <TableHead className="justify-end items-end"></TableHead>
+            <TableHead className="justify-end items-end"/>
         </TableRow>
         </TableHeader>
   )

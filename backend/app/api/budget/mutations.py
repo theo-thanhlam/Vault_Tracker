@@ -88,12 +88,18 @@ class BudgetMutation(BaseAuthenticatedMutation[BudgetModel,CreateBudgetInput,Upd
             if input.categories:
                 for category in categories:
                     session.add(CategoryBudgetModel(category_id=category.id,budget_id=new_budget_instance.id))
+            session.commit()
+            session.refresh(new_budget_instance)
+            return BudgetSuccess(
+                message="Budget created successfully",
+                values=BudgetType(**new_budget_instance.to_dict(), categories = [CategoryType(**category.to_dict()) for category in categories]), 
+                code=status.HTTP_201_CREATED)
+
         except Exception as e:
             session.rollback()
+        finally:
         
-        session.commit()
-        session.close()
-        return BudgetSuccess(message="Budget created successfully",values=new_budget_instance, code=status.HTTP_201_CREATED)
+            session.close()
     
     @strawberry.mutation(description="Update a budget")
     def update(self,input:UpdateBudgetInput,info:Info) -> BudgetSuccess:
@@ -130,7 +136,10 @@ class BudgetMutation(BaseAuthenticatedMutation[BudgetModel,CreateBudgetInput,Upd
             budget.updated_at = datetime.now()
             session.commit()
             session.refresh(budget)
-           
+            return BudgetSuccess(
+                message="Budget updated successfully",
+                values=BudgetType(**budget.to_dict(), categories = [CategoryType(**category.to_dict()) for category in categories]) , 
+                code=status.HTTP_200_OK)
                     
                     
         except Exception as e:
@@ -139,10 +148,7 @@ class BudgetMutation(BaseAuthenticatedMutation[BudgetModel,CreateBudgetInput,Upd
         finally:
             session.close()
             
-        return BudgetSuccess(
-                message="Budget updated successfully",
-                values=BudgetType(**budget.to_dict(), categories = [CategoryType(**category.to_dict()) for category in categories]) , 
-                code=status.HTTP_200_OK)
+       
             
     
     @strawberry.mutation(description="Delete a budget")
