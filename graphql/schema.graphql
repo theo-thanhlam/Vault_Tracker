@@ -58,6 +58,7 @@ enum BudgetFrequencyEnum {
   BI_WEEKLY
   MONTHLY
   YEARLY
+  CUSTOM
 }
 
 """Budget mutation type"""
@@ -70,6 +71,12 @@ type BudgetMutation {
 
   """Delete a budget"""
   delete(input: DeleteBudgetInput!): BudgetSuccess!
+}
+
+"""Budget query type"""
+type BudgetQuery {
+  """Get all budgets"""
+  getAllBudgets: GetBudgetSuccess!
 }
 
 """Budget success type"""
@@ -98,7 +105,7 @@ type BudgetType {
   startDate: DateTime
   endDate: DateTime
   userId: UUID!
-  categoryId: UUID!
+  categories: [CategoryType!]
 }
 
 enum BudgetTypeEnum {
@@ -162,7 +169,7 @@ input CreateBudgetInput {
   frequency: BudgetFrequencyEnum!
   startDate: DateTime = null
   endDate: DateTime = null
-  categoryId: UUID!
+  categories: [UUID!]!
 }
 
 input CreateCategoryInput {
@@ -179,8 +186,8 @@ input CreateGoalInput {
   target: Float!
   startDate: DateTime!
   endDate: DateTime!
-  categories: [UUID!] = null
-  status: GoalProgressStatusEnum!
+  categories: [UUID!]!
+  status: GoalStatusEnum!
 }
 
 input CreateTransactionInput {
@@ -188,7 +195,6 @@ input CreateTransactionInput {
   description: String!
   categoryId: UUID!
   date: DateTime = null
-  goals: [GoalAllocationInput!] = null
 }
 
 """Handle dashboard data"""
@@ -255,6 +261,16 @@ type GetAllTransactionsResponse implements BaseResponse {
   totalCount: Int!
 }
 
+"""Budget list success type"""
+type GetBudgetSuccess implements BaseResponse {
+  """Success message"""
+  message: String!
+
+  """HTTP status code"""
+  code: Int!
+  values: [BudgetType!]!
+}
+
 type GetCategorySuccess implements BaseResponse {
   """Success message"""
   message: String!
@@ -292,12 +308,6 @@ type GetUserSuccess implements BaseResponse {
   values: UserType
 }
 
-"""Input type for creating a transaction goal."""
-input GoalAllocationInput {
-  goalId: UUID!
-  amount: Float!
-}
-
 """Goal mutation type"""
 type GoalMutation {
   """Create a goal"""
@@ -310,17 +320,18 @@ type GoalMutation {
   delete(input: DeleteGoalInput!): GoalSuccess!
 }
 
-enum GoalProgressStatusEnum {
+"""Handles goal-related queries"""
+type GoalQuery {
+  getAllGoals: GetGoalSuccess!
+}
+
+enum GoalStatusEnum {
   NOT_STARTED
   IN_PROGRESS
   COMPLETED
   CANCELLED
   FAILED
-}
-
-"""Handles goal-related queries"""
-type GoalQuery {
-  getAllGoals: GetGoalSuccess!
+  CUSTOM
 }
 
 """Goal success type"""
@@ -346,7 +357,7 @@ type GoalType {
   target: Float!
   startDate: DateTime!
   endDate: DateTime!
-  status: GoalProgressStatusEnum!
+  status: GoalStatusEnum!
   userId: UUID!
   categories: [CategoryType!]
   progress: Float
@@ -403,6 +414,9 @@ type Query {
 
   """Access goal-related queries."""
   goal: GoalQuery!
+
+  """Access budget-related queries."""
+  budget: BudgetQuery!
 }
 
 """Input data required to register a new user"""
@@ -477,7 +491,7 @@ input UpdateBudgetInput {
   frequency: BudgetFrequencyEnum = null
   startDate: DateTime = null
   endDate: DateTime = null
-  categoryId: UUID = null
+  categories: [UUID!]!
 }
 
 input UpdateCategoryInput {
@@ -496,8 +510,8 @@ input UpdateGoalInput {
   target: Float = null
   startDate: DateTime = null
   endDate: DateTime = null
-  categories: [UUID!] = null
-  status: GoalProgressStatusEnum = null
+  categories: [UUID!]!
+  status: GoalStatusEnum = null
 }
 
 input UpdateTransactionInput {
@@ -506,7 +520,6 @@ input UpdateTransactionInput {
   description: String = null
   categoryId: UUID = null
   date: DateTime = null
-  goals: [GoalAllocationInput!] = null
 }
 
 enum UserRoleEnum {

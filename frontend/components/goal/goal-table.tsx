@@ -38,7 +38,7 @@ const GoalTable = () => {
     fetchPolicy: "network-only",
   } )
   const goals = data?.goal.getAllGoals.values || [];
-  console.log(goals)
+
   const handleSortChange = (value: string) => {
     setSortBy(value);
   };
@@ -144,8 +144,7 @@ const GoalTable = () => {
 
       {/* Delete Confirmation Dialog */}
       <DeleteDialog
-        // title="Delete Goal"
-        // description="Delete goal"
+        
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onDelete={handleDeleteConfirm}

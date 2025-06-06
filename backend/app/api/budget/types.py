@@ -21,6 +21,7 @@ class BudgetType(BaseType):
     end_date:Optional[datetime] = None
     user_id:UUID
     categories:Optional[List[CategoryType]] = None
+    current_amount:Optional[float] = None
 
 @strawberry.type(description="Budget success type")
 class BudgetSuccess(BaseSuccess[BudgetType]):

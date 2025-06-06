@@ -30,7 +30,7 @@ def get_all_goals_query(session, user_id: UUID) -> List[GoalType]:
             if category_assoc.category_goal_association:
                 category_dict = category_assoc.category_goal_association.to_dict()
                 categories.append(CategoryType(**category_dict))
-        goal_dict["categories"] = build_tree(categories)
+        goal_dict["categories"] = categories
         goals.append(GoalType(**goal_dict))
     
     return goals
