@@ -1,4 +1,4 @@
-name: Python Deploy
+name: Next Deploy
 
 on:
     push:
@@ -19,10 +19,13 @@ jobs:
                     whoami
                     echo "Github Action was here"
                     exit
-    
+
     deploy:
         runs-on: ubuntu-latest
         needs: test-ssh-connection
+        defaults:
+            run:
+                working-directory: Desktop/Vault_Tracker/frontend
         steps:
             - name: Deploy using ssh
               uses: appleboy/ssh-action@master
@@ -32,8 +35,10 @@ jobs:
                 password: ${{  secrets.SSH_PASSWORD }}
                 port: 22
                 script: |
-                    cd Desktop/Vault_Tracker/backend
                     git fetch origin
                     git checkout dev
                     git pull
-                    ./scripts/docker-build-run.sh
+                    docker build -t vt-next:latest .
+                    docker stop vt-nextapp || true
+                    docker rm vt-nextapp || true
+                    docker run -d --name vt-nextapp -p 3000:3000 vt-next:latest
