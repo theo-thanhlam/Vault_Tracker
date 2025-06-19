@@ -7,9 +7,11 @@ import { VERIFY_EMAIL_MUTATION } from "@/lib/graphql/authentication/mutations";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Suspense } from 'react'
+
 import { toast } from "sonner";
 
-export default function VerifyEmailPage() {
+function Verfication(){
   const router = useRouter();
   const searchParams = useSearchParams();
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -95,4 +97,14 @@ export default function VerifyEmailPage() {
       </Card>
     </motion.div>
   );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Verfication />
+    </Suspense>
+  )
+  
+  
 }
