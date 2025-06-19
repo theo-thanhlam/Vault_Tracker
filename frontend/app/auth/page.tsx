@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function AuthPage() {
   const [tab, setTab] = useState<"login" | "register">("login");
+  console.log(process.env.NEXT_PUBLIC_API_URL)
 
   return (
     <div className="flex justify-center items-center min-h-screen  bg-background">
