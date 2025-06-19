@@ -10,7 +10,7 @@ const BudgetTableHeader = () => {
                 <TableHead className="font-bold text-md md:text-lg ">Name</TableHead>
                 <TableHead className="font-bold text-md md:text-lg ">Types</TableHead>
                 <TableHead className="font-bold text-md md:text-lg ">Frequency</TableHead>
-                <TableHead className="font-bold text-md md:text-lg ">Remaining</TableHead>
+                <TableHead className="font-bold text-md md:text-lg ">Usage</TableHead>
 
                 <TableHead className="font-bold text-md md:text-lg ">Duration</TableHead>
 

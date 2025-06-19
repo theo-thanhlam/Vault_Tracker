@@ -6,6 +6,7 @@ from .types import *
 from ...utils import db
 from ...utils.handler import DatabaseHandler
 from ..base.types import BaseInput
+from .session_query import *
 
 
 @strawberry.type(description="Handle dashboard data")
@@ -21,7 +22,7 @@ class DashboardQuery():
             input (TypeInput): Input object specifying the category `type`.
 
         Returns:
-            getSumByCategoryTypeSuccess: Success object with a dict showing total sums.
+            DashboardSuccess: Success object with a dict showing total sums.
 
         
         Example response:
@@ -45,12 +46,17 @@ class DashboardQuery():
         """
         session = db.get_session()
         user = info.context.get("user")
+        query = DashboardSessionQuery(session, user.id)
         
         
-        type_sum = DatabaseHandler.get_total_by_category_type(session=session, user_id=user.id)
+        type_sum = query.get_sum_by_category()
         type_sum_dict = {k:v for k,v in type_sum}
+        type_sum_dict['expense'] = -type_sum_dict['expense']
         
-        DashboardValues = DashboardType(CategoryTypeSum=type_sum_dict)
+        recent_transactions = query.get_recent_transactions()
+        cashflows = query.get_cashflow()
+        cashflow_list = [CashFlowType(month=row.month, totalIncome=row.totalIncome, totalExpense=row.totalExpense) for row in cashflows]
+        DashboardValues = DashboardType(CategoryTypeSum=type_sum_dict, RecentTransactions=recent_transactions, Cashflow=cashflow_list)
         
         
         return DashboardSuccess(values=DashboardValues, message="Dashboard Values", code=200)

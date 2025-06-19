@@ -8,7 +8,7 @@ import { Button } from '../ui/button';
 import { Dialog } from '../ui/dialog';
 import BudgetDetail from './budget-detail';
 import { Category } from '@/types/category';
-import { differenceInCalendarDays } from 'date-fns';
+import { differenceInCalendarDays, differenceInMonths, differenceInWeeks } from 'date-fns';
 import { Progress } from '../ui/progress';
 import { cn } from '@/lib/utils';
 
@@ -91,12 +91,28 @@ interface BudgetRowProps {
   onDelete?: (budget: Budget) => void;
 }
 
+const formatRemainingTime = (days: number): string => {
+  if (days < 0) return 'Expired';
+  if (days === 0) return 'Today';
+  
+  const months = differenceInMonths(new Date().setDate(new Date().getDate() + days), new Date());
+  const weeks = differenceInWeeks(new Date().setDate(new Date().getDate() + days), new Date());
+  
+  if (months > 0) {
+    return `${months} ${months === 1 ? 'month' : 'months'}`;
+  } else if (weeks > 0) {
+    return `${weeks} ${weeks === 1 ? 'week' : 'weeks'}`;
+  } else {
+    return `${days} ${days === 1 ? 'day' : 'days'}`;
+  }
+};
+
 const BudgetRow = ({budget, onViewDetails, onEdit, onDelete}: BudgetRowProps) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const endDate = new Date(budget.endDate)
     const today = new Date()
     const remainingDays = differenceInCalendarDays(endDate, today)
-    const progress = Number(((budget.amount - budget.currentAmount) / budget.amount) * 100)
+    const progress = Number(((budget.amount - budget.currentAmount) / budget.amount) * 100).toFixed(2)
 
     const typeStyles = budgetTypeStyles[budget.type as BudgetType];
     const frequencyStyles = budgetFrequencyStyles[budget.frequency as BudgetFrequency];
@@ -115,10 +131,10 @@ const BudgetRow = ({budget, onViewDetails, onEdit, onDelete}: BudgetRowProps) =>
         </div>
       </TableCell>
       <TableCell className='flex flex-row justify-start items-center gap-2 '>
-        <Progress value={progress} className="w-[60%]" />
+        <Progress value={Number(progress)} className="w-[60%]" />
         <p className="text-sm text-gray-500">{progress}% ({budget.currentAmount} / {budget.amount})</p>
       </TableCell>
-      <TableCell>{remainingDays} days</TableCell>
+      <TableCell>{formatRemainingTime(remainingDays)}</TableCell>
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
