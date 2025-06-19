@@ -39,26 +39,30 @@ jobs:
             ./scripts/docker-build-run.sh
 
   build-and-push-frontend:
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: deploy-python
+    defaults:
+      run:
+        working-directory: frontend
     steps:
-      - name: Checkout frontend repo
-        uses: actions/checkout@v3
-        with:
-          path: frontend
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+      - name: login to GitHub Container Registry
+        uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        working-directory: ./frontend
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: Build and tag Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/vt-next:latest .
-          docker push ghcr.io/${{ github.repository_owner }}/vt-next:latest
+            docker build -t ghcr.io/${{ github.repository_owner }}/vt-next:latest .
+
+      - name: Push Docker image
+        run: |
+            docker push ghcr.io/${{ github.repository_owner }}/vt-next:latest
+    
 
   deploy-next:
     runs-on: ubuntu-latest
