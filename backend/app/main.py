@@ -47,4 +47,4 @@ def root():
 
 
 
-app.include_router(graphql_router, prefix='/api')
+app.include_router(graphql_router, prefix='/gql')
