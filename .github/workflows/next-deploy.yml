@@ -11,6 +11,7 @@ jobs:
         steps:
             - name: Deploy using ssh
               uses: appleboy/ssh-action@master
+              if: ${{ github.event.workflow_run.conclusion == 'success' }}
               with:
                 host: ${{ secrets.SSH_HOST }}
                 username: ${{ secrets.SSH_USER }}
