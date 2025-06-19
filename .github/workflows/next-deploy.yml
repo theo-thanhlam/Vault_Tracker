@@ -1,28 +1,13 @@
 name: Next Deploy
 
 on:
-    push:
-        branches: [dev]
-
+    workflow_run:
+        workflows: ["Python Deploy"]
+        types:
+            - completed
 jobs:
-    test-ssh-connection:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Test Droplet connection
-              uses: appleboy/ssh-action@master
-              with:
-                host: ${{ secrets.SSH_HOST }}
-                username: ${{ secrets.SSH_USER }}
-                password: ${{  secrets.SSH_PASSWORD }}
-                port: 22
-                script: |
-                    whoami
-                    echo "Github Action was here"
-                    exit
-
     deploy:
         runs-on: ubuntu-latest
-        needs: test-ssh-connection
         steps:
             - name: Deploy using ssh
               uses: appleboy/ssh-action@master
