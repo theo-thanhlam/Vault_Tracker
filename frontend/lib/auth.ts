@@ -25,7 +25,7 @@ export async function getCurrentUser(authToken: string) {
   if(!authToken){
     return null;
   }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/gql`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
