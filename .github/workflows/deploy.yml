@@ -44,10 +44,10 @@ jobs:
             git checkout dev
             git pull
             cd backend
-            docker stop $API_CONTAINER_NAME || true
-            docker rm -f $API_CONTAINER_NAME || true
+            docker stop ${{ env.API_CONTAINER_NAME }} || true
+            docker rm -f ${{ env.API_CONTAINER_NAME }} || true
             docker build -t vt-pythonapp:latest .
-            docker run --env-file .env -p 8000:8000 --name $API_CONTAINER_NAME -d vt-pythonapp:latest
+            docker run --env-file .env -p 8000:8000 --name ${{ env.API_CONTAINER_NAME }} -d vt-pythonapp:latest
   
   deploy-next:
     runs-on: ubuntu-latest
@@ -66,10 +66,10 @@ jobs:
             git checkout dev
             git pull
             cd frontend
-            docker stop $APP_CONTAINER_NAME || true
-            docker rm -f $APP_CONTAINER_NAME || true
+            docker stop ${{ env.APP_CONTAINER_NAME }} || true
+            docker rm -f ${{ env.APP_CONTAINER_NAME }} || true
             docker build -t vt-nextapp:latest .
-            docker run -p 3000:3000 --name $APP_CONTAINER_NAME -d vt-nextapp:latest
+            docker run -p 3000:3000 --name ${{ env.APP_CONTAINER_NAME }} -d vt-nextapp:latest
 
 
   # build-and-push-frontend:
