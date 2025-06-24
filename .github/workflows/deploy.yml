@@ -47,11 +47,11 @@ jobs:
             docker stop $API_CONTAINER_NAME || true
             docker rm -f $API_CONTAINER_NAME || true
             docker build -t vt-pythonapp:latest .
-            docker run -d --env-file .env -p 8000:8000 --name $API_CONTAINER_NAME vt-pythonapp:latest
+            docker run --env-file .env -p 8000:8000 --name $API_CONTAINER_NAME -d vt-pythonapp:latest
   
   deploy-next:
     runs-on: ubuntu-latest
-    needs: test-ssh-connection
+    needs: deploy-python
     steps:
       - name: Build and run Next via SSH
         uses: appleboy/ssh-action@master
@@ -69,7 +69,7 @@ jobs:
             docker stop $APP_CONTAINER_NAME || true
             docker rm -f $APP_CONTAINER_NAME || true
             docker build -t vt-nextapp:latest .
-            docker run -d -p 3000:3000 --name $APP_CONTAINER_NAME vt-nextapp:latest
+            docker run -p 3000:3000 --name $APP_CONTAINER_NAME -d vt-nextapp:latest
 
 
   # build-and-push-frontend:
