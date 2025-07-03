@@ -5,7 +5,7 @@ origins = [
 ]
 class CorsConfig:
     ORIGINS = origins
-    ALLOW_METHODS=["GET, POST"]
+    ALLOW_METHODS=["GET, POST, OPTIONS"]
     ALLOW_HEADERS=["*"]
     ALLOW_CREDENTIALS=True
 
