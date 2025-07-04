@@ -43,10 +43,8 @@ def startup():
 
 @app.get("/")
 def root():
-   
-    return {"message": "Hello World"}
+    return {"message": "Hello World 1"}
 
 
 
-app.include_router(graphql_router, prefix='/api')
-
+app.include_router(graphql_router, prefix='/gql')

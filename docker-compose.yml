@@ -9,7 +9,9 @@ services:
     depends_on:
       - backend
     networks:
-      - vault_tracker_network
+      - vault_tracker-network
+    env_file:
+      - ./frontend/.env
 
   backend:
     build: ./backend
@@ -18,35 +20,31 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/app/app
-    depends_on:
-      - redis
+    # depends_on:
+    #   - redis
     env_file:
-      - .env
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}  # Pass the password from .env
-
+      - ./backend/.env
+    
       
     networks:
-      - vault_tracker_network
+      - vault_tracker-network
 
-  redis:
-    image: redis:7
-    container_name: vault_tracker-redis
-    ports:
-      - "6379:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD} >/dev/null 2>&1
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}  # Set in .env
+  # redis:
+  #   image: redis:7
+  #   container_name: vault_tracker-redis
+  #   ports:
+  #     - "6379:6379"
+   
 
-    volumes:
-      - redis_data:/data
-    networks:
-      - vault_tracker_network
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - vault_tracker-network
 
 networks:
-  vault_tracker_network:
+  vault_tracker-network:
     driver: bridge
 
-volumes:
-  pgdata:
-  redis_data:
+# volumes:
+#   pgdata:
+#   redis_data:

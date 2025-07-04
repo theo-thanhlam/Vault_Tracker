@@ -13,7 +13,7 @@ import {
 function makeSSRClient() {
   const httpLink = new HttpLink({
     // this needs to be an absolute url, as relative urls cannot be used in SSR
-    uri: `${process.env.NEXT_PUBLIC_API_URL}/api`,
+    uri: `${process.env.NEXT_PUBLIC_API_URL}/gql`,
     credentials:"include",
     
     fetchOptions: {

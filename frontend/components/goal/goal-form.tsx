@@ -1,8 +1,8 @@
-"use client"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
+"use client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -10,30 +10,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { CREATE_GOAL } from "@/lib/graphql/goal/gql"
-import { useMutation } from "@apollo/client"
-import { useState } from "react"
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { toast } from "sonner";
+import { CREATE_GOAL,UPDATE_GOAL, DELETE_GOAL } from "@/lib/graphql/goal/gql";
+import { useMutation, useQuery } from "@apollo/client";
+import { useState } from "react";
+import { CategoryMultiSelect } from "@/components/category/category-multi-select";
+import { GET_CATEGORIES_BY_TYPE_QUERY, GET_CATEGORIES_QUERY, GET_CATEGORY_TREE } from "@/lib/graphql/category/gql";
+import { Goal } from "@/types/goal";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -51,58 +53,104 @@ const formSchema = z.object({
   endDate: z.date({
     required_error: "End date is required.",
   }),
-  status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "OVERDUE"], {
+  status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"], {
     required_error: "Status is required.",
   }),
-})
+  categories: z.array(z.string()).min(1, {
+    message: "Please select at least one category.",
+  }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface GoalFormProps {
-  onSuccess?: () => void
+  initialData?: Goal;
+  onSuccess?: () => void;
 }
 
-export function GoalForm({ onSuccess }: GoalFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false) // loading state
-  
-  const router = useRouter()
+export function GoalForm({ initialData, onSuccess }: GoalFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [createGoal] = useMutation(CREATE_GOAL, {
     onCompleted: (data) => {
-      toast.success("Goal created successfully")
+      toast.success("Goal created successfully");
+      onSuccess?.();
     },
     onError: (error) => {
-      
-      toast.error("Failed to create goal")
-    }
-  })
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      target: "",
-      status: "IN_PROGRESS",
+      toast.error("Failed to create goal");
     },
-  })
+  });
+  const [updateGoal] = useMutation(UPDATE_GOAL, {
+    onCompleted: (data) => {
+      toast.success("Goal updated successfully");
+      onSuccess?.();
+    },
+    onError: (error) => {
+      toast.error("Failed to update goal");
+    },
+  });
+  
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      setIsSubmitting(true)
-      await createGoal({
-        variables: {
-          input: {
-            ...values,
-            target: parseFloat(values.target),
-            startDate: values.startDate,
-            endDate: values.endDate,
-          },
+  const { data: categoriesData } = useQuery(GET_CATEGORY_TREE);
+  const categories = categoriesData?.category?.getAllCategories?.treeViews || [];
+  console.log(categories)
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: initialData
+      ? {
+          name: initialData.name,
+          description: initialData.description,
+          target: initialData.target.toString(),
+          status: initialData.status as "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "FAILED",
+          categories: initialData.categories?.map(category => category.id) || [],
+          startDate: new Date(initialData.startDate),
+          endDate: new Date(initialData.endDate),
+        }
+      : {
+          name: "",
+          description: "",
+          target: "",
+          status: "IN_PROGRESS",
+          categories: [],
+          startDate: undefined,
+          endDate: undefined,
         },
-      })
+  });
+
+  async function onSubmit(values: FormValues) {
+    try {
+      setIsSubmitting(true);
+        if (initialData) {
+        await updateGoal({
+          variables: {
+            input: {
+              id: initialData.id,
+              ...values,
+              target: parseFloat(values.target),
+              startDate: values.startDate,
+              endDate: values.endDate,
+              categories: values.categories,
+            },
+          },
+        });
+      } else {
+        await createGoal({
+          variables: {
+            input: {
+              ...values,
+              target: parseFloat(values.target),
+              startDate: values.startDate,
+              endDate: values.endDate,
+              categories: values.categories,
+            },
+          },
+        });
+      }
     } catch (error) {
-      toast.error("Failed to create goal")
-    }
-    finally {
-      setIsSubmitting(false)
+      toast.error(initialData ? "Failed to update goal" : "Failed to create goal");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -130,10 +178,10 @@ export function GoalForm({ onSuccess }: GoalFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Enter goal description" 
-                  className="resize-none" 
-                  {...field} 
+                <Textarea
+                  placeholder="Enter goal description"
+                  className="resize-none"
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
@@ -148,11 +196,7 @@ export function GoalForm({ onSuccess }: GoalFormProps) {
             <FormItem>
               <FormLabel>Target Amount</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="Enter target amount" 
-                  {...field} 
-                />
+                <Input type="number" placeholder="00.00" {...field} step="0.01" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -244,42 +288,68 @@ export function GoalForm({ onSuccess }: GoalFormProps) {
             )}
           />
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="FAILED">Failed</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    <SelectItem value="CUSTOM">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormField
+            control={form.control}
+            name="categories"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Categories</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
+                  <CategoryMultiSelect
+                    categories={categories}
+                    value={field.value || []}
+                    onChange={field.onChange}
+                  />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="NOT_STARTED">Not Started</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="OVERDUE">Overdue</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <div className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              Creating...
-            </div>
-          ) : (
-            "Create Goal"
-          )}
-        </Button>
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                {initialData ? "Updating..." : "Creating..."}
+              </div>
+            ) : initialData ? (
+              "Update Goal"
+            ) : (
+              "Create Goal"
+            )}
+          </Button>
       </form>
     </Form>
-  )
-} 
+  );
+}

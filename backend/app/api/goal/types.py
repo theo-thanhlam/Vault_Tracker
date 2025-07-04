@@ -1,9 +1,13 @@
 import strawberry
 from ..base.types import BaseSuccess,BaseType,BaseError,BaseResponse
-from ...models.core import GoalProgressStatusEnum
+from ...models.core import GoalStatusEnum
 from typing import List,Optional
 from datetime import datetime   
 from uuid import UUID
+from typing import Optional,List
+from ..category.types import CategoryType
+
+
 
 @strawberry.type(description="Goal type")
 class GoalType(BaseType):
@@ -15,9 +19,11 @@ class GoalType(BaseType):
     target:float
     start_date:datetime
     end_date:datetime
-    status:GoalProgressStatusEnum
+    status:GoalStatusEnum
     user_id:UUID
-    category_id:UUID
+    categories:Optional[List[CategoryType]] = None
+    progress:Optional[float] = None
+    current_amount:Optional[float] = None
     
 @strawberry.type(description="Goal success type")
 class GoalSuccess(BaseSuccess[GoalType]):
@@ -42,3 +48,10 @@ class GoalListType(BaseType):
     
     
     
+@strawberry.type(description="Goal list success type")
+class GetGoalSuccess(BaseSuccess[List[GoalType]]):
+    """
+    Goal list success type
+    """
+    values:List[GoalType]
+

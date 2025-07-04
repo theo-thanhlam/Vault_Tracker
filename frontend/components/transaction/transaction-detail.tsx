@@ -39,17 +39,18 @@ const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Tag className="h-5 w-5 text-primary" />
-            <DialogTitle className="font-semibold text-xl">Category</DialogTitle>
+            <DialogTitle className="font-semibold text-xl">Type</DialogTitle>
           </div>
-          <span className="uppercase text-sm font-light">{transaction.categoryName}</span>
+          <span className="uppercase text-sm font-bold">{transaction.categoryType}</span>
         </div>
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Tag className="h-5 w-5 text-primary" />
-            <DialogTitle className="font-semibold text-xl">Type</DialogTitle>
+            <DialogTitle className="font-semibold text-xl">Category</DialogTitle>
           </div>
-          <span className="uppercase text-sm font-light">{transaction.categoryType}</span>
+          <span className="text-sm ">{transaction.categoryName}</span>
         </div>
+        
         <div>
           <div className="flex items-center gap-2 mb-2">
             <FileText className="h-5 w-5 text-primary" />
@@ -57,22 +58,18 @@ const TransactionDetail = ({ transaction }: TransactionDetailProps) => {
           </div>
           <span className="text-sm font-light">{transaction.description || "No description"}</span>
         </div>
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            <DialogTitle className="font-semibold text-xl">Created At</DialogTitle>
-          </div>
-          <span className="text-sm font-light">{format(new Date(transaction.createdAt), "MM/dd/yyyy")}</span>
-        </div>
-        {transaction.updatedAt && (
+        <hr className="my-4" />
+        <div className="space-y-2 text-xs text-muted-foreground">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <DialogTitle className="font-semibold text-xl">Updated At</DialogTitle>
-            </div>
-            <span className="text-sm font-light">{format(new Date(transaction.updatedAt), "MM/dd/yyyy")}</span>
+            <span>Created: {format(new Date(transaction.createdAt), "LLL wo yyyy HH:mm:ss")}</span>
           </div>
-        )}
+          {transaction.updatedAt && ( 
+          <div>
+            <span>Updated: {format(new Date(transaction.updatedAt), "LLL wo yyyy HH:mm:ss")}</span>
+          </div>
+          )}
+        </div>
+       
       </div>
     </DialogContent>
   )

@@ -4,7 +4,7 @@ from .types import *
 from ...utils import db
 from ...utils.handler import login_required, DatabaseHandler
 from strawberry import Info
-from typing import Optional
+from typing import Optional,List    
 import datetime
 from ...models.core import TransactionTypeEnum, UserModel,TransactionModel,CategoryModel
 from sqlalchemy import sql
@@ -12,6 +12,15 @@ from typing import Union
 from ..base.types import BaseInput
 from fastapi import status
 from ..base.mutations import BaseAuthenticatedMutation
+from ...models import GoalModel
+
+@strawberry.input(description="Input type for creating a transaction goal.")
+class GoalAllocationInput(BaseInput):
+    """
+    Input type for creating a transaction goal.
+    """
+    goal_id:UUID
+    amount:float
 
 @strawberry.input
 class CreateTransactionInput(BaseInput):
@@ -19,6 +28,7 @@ class CreateTransactionInput(BaseInput):
     description:str
     category_id:UUID
     date:Optional[datetime.datetime] = None
+    # goals:Optional[List[GoalAllocationInput]] = None
     # type:TransactionTypeEnum
     
 @strawberry.input
@@ -32,7 +42,8 @@ class UpdateTransactionInput(BaseInput):
     description:Optional[str] = None
     category_id:Optional[UUID] = None
     date:Optional[datetime.datetime] =None
-    
+    # goals:Optional[List[GoalAllocationInput]] = None
+
     # type:Optional[str] = None
     
 
@@ -118,32 +129,18 @@ def update_existing_transaction(existing_transaction:TransactionModel,input:Upda
 #         return TransactionSuccess(**success_data)
         
 @strawberry.type
-class TransactionMutation(BaseAuthenticatedMutation):
+class TransactionMutation(BaseAuthenticatedMutation[TransactionModel, CreateTransactionInput, UpdateTransactionInput, DeleteTransactionInput, TransactionSuccess, TransactionType]):
     """
     Handles all transaction-related mutations including create, update, and delete.
-
-    Inherits:
-        BaseAuthenticatedMutation: A generic mutation handler with auth checks and CRUD logic.
-
-    Class Attributes:
-        model: The SQLAlchemy model associated with this mutation (`TransactionModel`).
-        success_type: The GraphQL success response type (`TransactionSuccess`).
-        type: The return type for individual transaction instances (`TransactionType`).
-
-    Mutations:
-        create: Adds a new transaction.
-        update: Updates an existing transaction.
-        delete: Performs a soft delete on an existing transaction.
     """
     model = TransactionModel
     success_type = TransactionSuccess
     type = TransactionType
     
-    
-    @strawberry.mutation
-    def create(self, input:CreateTransactionInput, info:strawberry.Info) -> TransactionSuccess:
+    @strawberry.mutation(description="Create a new transaction")
+    def create(self, input: CreateTransactionInput, info: strawberry.Info) -> TransactionSuccess:
         """
-        Creates a new transaction.
+        Creates a new transaction with optional goal allocations.
 
         Args:
             input (CreateTransactionInput): Data required to create the transaction.
@@ -154,31 +151,37 @@ class TransactionMutation(BaseAuthenticatedMutation):
         """
         return super().create(input, info)
     
-    @strawberry.mutation
-    def update(self, input:UpdateTransactionInput, info:strawberry.Info) -> TransactionSuccess:
+    @strawberry.mutation(description="Update an existing transaction")
+    def update(self, input: UpdateTransactionInput, info: strawberry.Info) -> TransactionSuccess:
         """
-        Updates an existing transaction.
+        Updates an existing transaction and its goal allocations.
 
         Args:
-            input (UpdateTransactionInput): Data for the transaction to be updated (must include `id`).
-            info (strawberry.Info): GraphQL context.
+            input (UpdateTransactionInput): Data for the transaction to be updated.
+            info (strawberry.Info): GraphQL context containing the authenticated user.
 
         Returns:
             TransactionSuccess: Response with the updated transaction data.
+
+        Raises:
+            TransactionError: If transaction not found, unauthorized, or invalid goal allocations.
         """
         return super().update(input, info)
     
-    @strawberry.mutation
-    def delete(self, input:DeleteTransactionInput, info:strawberry.Info) -> TransactionSuccess:
+    @strawberry.mutation(description="Delete a transaction and its associated goal allocations")
+    def delete(self, input: DeleteTransactionInput, info: strawberry.Info) -> TransactionSuccess:
         """
-        Performs a soft delete on the specified transaction.
+        Performs a soft delete on a transaction and its associated goal allocations.
 
         Args:
-            input (DeleteTransactionInput): Input containing the `id` of the transaction to be deleted.
-            info (strawberry.Info): GraphQL context.
+            input (DeleteTransactionInput): Input containing the ID of the transaction to delete.
+            info (strawberry.Info): GraphQL context containing the authenticated user.
 
         Returns:
             TransactionSuccess: Response confirming the deletion.
+
+        Raises:
+            TransactionError: If transaction not found, unauthorized, or other errors occur.
         """
         return super().delete(input, info)
         

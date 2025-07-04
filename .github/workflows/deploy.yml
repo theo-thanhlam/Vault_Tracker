@@ -1,0 +1,145 @@
+name: Python Deploy
+permissions:
+  contents: read
+  packages: write
+
+on:
+  push:
+    branches: [dev]
+
+env:
+  API_CONTAINER_NAME: vt-api
+  APP_CONTAINER_NAME: vt-app
+
+jobs:
+  test-ssh-connection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Droplet connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            whoami
+            echo "Github Action was here"
+            exit
+
+  run-docker-compose:
+      runs-on: ubuntu-latest
+      needs: test-ssh-connection
+      steps:
+        - name: Run Docker Compose via SSH
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWORD }}
+            port: 22
+            script: |
+              docker stop ${{ env.API_CONTAINER_NAME }} || true
+              docker rm -f ${{ env.API_CONTAINER_NAME }} || true
+              cd Desktop/Vault_Tracker
+              git fetch origin
+              git checkout dev
+              git pull
+              docker compose up -d
+
+
+
+  # deploy-python:
+  #   runs-on: ubuntu-latest
+  #   needs: test-ssh-connection
+  #   steps:
+  #     - name: Deploy Python API via SSH
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.SSH_HOST }}
+  #         username: ${{ secrets.SSH_USER }}
+  #         password: ${{ secrets.SSH_PASSWORD }}
+  #         port: 22
+  #         script: |
+  #           cd Desktop/Vault_Tracker
+  #           git fetch origin
+  #           git checkout dev
+  #           git pull
+  #           cd backend
+  #           docker stop ${{ env.API_CONTAINER_NAME }} || true
+  #           docker rm -f ${{ env.API_CONTAINER_NAME }} || true
+  #           docker build -t vt-pythonapp:latest .
+  #           docker run --env-file .env -p 8000:8000 --name ${{ env.API_CONTAINER_NAME }} -d vt-pythonapp:latest
+  
+  # deploy-next:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy-python
+  #   steps:
+  #     - name: Build and run Next via SSH
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.SSH_HOST }}
+  #         username: ${{ secrets.SSH_USER }}
+  #         password: ${{ secrets.SSH_PASSWORD }}
+  #         port: 22
+  #         script: |
+  #           cd Desktop/Vault_Tracker
+  #           git fetch origin
+  #           git checkout dev
+  #           git pull
+  #           cd frontend
+  #           docker stop ${{ env.APP_CONTAINER_NAME }} || true
+  #           docker rm -f ${{ env.APP_CONTAINER_NAME }} || true
+  #           docker build -t vt-nextapp:latest .
+  #           docker run -p 3000:3000 --name ${{ env.APP_CONTAINER_NAME }} -d vt-nextapp:latest
+
+
+  # build-and-push-frontend:
+  #   name: Build & Push Docker Image
+  #   runs-on: ubuntu-latest
+  #   needs: deploy-python
+  #   defaults:
+  #     run:
+  #       working-directory: frontend
+  #   steps:
+  #     - name: login to GitHub Container Registry
+  #       uses: docker/login-action@v1
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+          
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+
+  #     - name: Build and tag Docker image
+  #       run: |
+  #         docker build \
+  #           --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
+  #           --build-arg GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+  #           --build-arg GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+  #           --build-arg NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }} \
+  #           -t ghcr.io/${{ github.repository_owner }}/vt-next:latest .
+
+  #     - name: Push Docker image
+  #       run: |
+  #         docker push ghcr.io/${{ github.repository_owner }}/vt-next:latest
+
+    
+
+  # deploy-next:
+  #   runs-on: ubuntu-latest
+  #   needs: build-and-push-frontend
+  #   steps:
+  #     - name: Deploy frontend by pulling Docker image
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.SSH_HOST }}
+  #         username: ${{ secrets.SSH_USER }}
+  #         password: ${{ secrets.SSH_PASSWORD }}
+  #         port: 22
+  #         script: |
+  #           docker pull ghcr.io/${{ github.repository_owner }}/vt-next:latest
+  #           docker stop vt-nextapp || true
+  #           docker rm vt-nextapp || true
+  #           docker run -d --env-file ~/Desktop/Vault_Tracker/frontend/.env --name vt-nextapp -p 3000:3000 ghcr.io/${{ github.repository_owner }}/vt-next:latest

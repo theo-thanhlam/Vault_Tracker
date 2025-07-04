@@ -4,6 +4,7 @@ from ...models.core.budget import *
 from typing import List,Optional
 from uuid import UUID
 from datetime import datetime
+from ..category.types import CategoryType
 
 @strawberry.type(description="Budget type")
 class BudgetType(BaseType):
@@ -19,7 +20,8 @@ class BudgetType(BaseType):
     start_date:Optional[datetime] = None
     end_date:Optional[datetime] = None
     user_id:UUID
-    category_id:UUID
+    categories:Optional[List[CategoryType]] = None
+    current_amount:Optional[float] = None
 
 @strawberry.type(description="Budget success type")
 class BudgetSuccess(BaseSuccess[BudgetType]):
@@ -34,3 +36,9 @@ class BudgetError(BaseError):
     """
     pass
 
+@strawberry.type(description="Budget list success type")
+class GetBudgetSuccess(BaseSuccess[List[BudgetType]]):
+    """
+    Get budget success type
+    """
+    values:List[BudgetType]
