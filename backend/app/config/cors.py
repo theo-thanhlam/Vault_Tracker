@@ -1,7 +1,9 @@
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 origins = [
-    "http://localhost:3000",
-    "http://137.184.161.82:3000"
+   os.getenv("FRONTEND_URL")
 ]
 class CorsConfig:
     ORIGINS = origins

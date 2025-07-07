@@ -4,11 +4,13 @@ import { getCurrentUser } from './lib/auth';
 
 
 export async function middleware(request: NextRequest) {
-  
-  const authToken = request.cookies.get('auth_token')?.value;
-  
-  const user = await getCurrentUser(authToken as string);
   const response = NextResponse.next();
+
+  const authToken = request.cookies.get('auth_token')?.value;
+  if (!authToken){
+    return NextResponse.redirect("/auth")
+  }
+  const user = await getCurrentUser(authToken as string);
   response.headers.set('x-auth-status', user ? 'authenticated' : 'unauthenticated');
   
 
