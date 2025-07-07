@@ -3,19 +3,19 @@
 services:
   frontend:
     build: ./frontend
-    container_name: vault_tracker-frontend
+    container_name: vt-app
     ports:
       - "3000:3000"
     depends_on:
       - backend
     networks:
-      - vault_tracker-network
+      - vt-network
     env_file:
       - ./frontend/.env
 
-  backend:
+  bacapkend:
     build: ./backend
-    container_name: vault_tracker-backend
+    container_name: vt-api
     ports:
       - "8000:8000"
     volumes:
@@ -27,18 +27,18 @@ services:
     
       
     networks:
-      - vault_tracker-network
+      - vt-network
 
   redis:
     image: redis:7
-    container_name: vault_tracker-redis
+    container_name: vt-redis
     ports:
       - "6379:6379"
     networks:
-      - vault_tracker-network
+      - vt-network
 
 networks:
-  vault_tracker-network:
+  vt-network:
     driver: bridge
 
 volumes:
