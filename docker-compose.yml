@@ -13,7 +13,7 @@ services:
     env_file:
       - ./frontend/.env
 
-  bacapkend:
+  backend:
     build: ./backend
     container_name: vt-api
     ports:
