@@ -107,7 +107,7 @@ export default function Navbar() {
           <Button
             variant="ghost"
             onClick={() => {
-              router.push("/dashboard");
+              // router.push("/dashboard");
               setIsMobileMenuOpen(false);
             }}
             className="w-full lg:w-auto border border-primary bg-primary/10 text-primary"
@@ -130,7 +130,7 @@ export default function Navbar() {
         <Button
           variant="default"
           onClick={() => {
-            router.push("/auth");
+            // router.push("/auth");
             setIsMobileMenuOpen(false);
           }}
           className="w-full lg:w-auto"

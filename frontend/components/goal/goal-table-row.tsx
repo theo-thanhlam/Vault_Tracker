@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { TableCell, TableRow } from '@/components/ui/table';
 import { differenceInCalendarDays } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Eye, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Eye, MoreHorizontal, Pencil, Table, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog } from '@radix-ui/react-dialog';
@@ -55,17 +55,48 @@ const GoalTableRow = ({ goal, onViewDetails, onEdit, onDelete }: GoalTableRowPro
 
   return (
     <TableRow>
-      <TableCell>{goal.name}</TableCell>
+      {/* <TableCell>{goal.name}</TableCell>
       <TableCell>
         <div className={`rounded-full w-fit px-2 py-1 text-xs font-medium ${status.borderColor} ${status.bgColor} ${status.textColor}`}>
           {status.label}
         </div>
+      </TableCell> */}
+      <TableCell>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+          <span> {goal.name}</span>
+          <div className={`rounded-full w-fit px-2 py-1 text-xs font-medium ${status.borderColor} ${status.bgColor} ${status.textColor} md:hidden`}>
+          {status.label}
+        </div>
+
+        </div>
       </TableCell>
-      <TableCell>{remainingDays} days</TableCell>
-      <TableCell className='flex flex-row justify-start items-center gap-2 '>
-        <Progress value={progress} className="w-[60%]" />
+      {/* Desktop Label Only */}
+      <TableCell className='hidden md:block'>
+        <div className={`rounded-full w-fit px-2 py-1 text-xs font-medium ${status.borderColor} ${status.bgColor} ${status.textColor}`}>
+          {status.label}
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+          <div className='w-1/2 hidden md:block'>
+          <Progress value={progress} className="w-full" indicatorColor='bg-green-100'/>
+        </div>
+        
+        <p className="text-sm text-gray-500">{progress}% ({goal.currentAmount} / {goal.target})</p>
+        </div>
+      </TableCell>
+
+      {/* Desktop only */}
+      <TableCell className='hidden md:block'>{remainingDays} days</TableCell>
+      <TableCell className='flex flex-row justify-start items-center gap-2 hidden md:block'>
+        <div className='w-1/2 hidden md:block'>
+          <Progress value={progress} className="w-full" indicatorColor='bg-green-100'/>
+        </div>
+        
         <p className="text-sm text-gray-500">{progress}% ({goal.currentAmount} / {goal.target})</p>
       </TableCell>
+      
+       
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

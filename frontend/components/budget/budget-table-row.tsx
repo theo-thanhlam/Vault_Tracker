@@ -116,6 +116,7 @@ const BudgetRow = ({budget, onViewDetails, onEdit, onDelete}: BudgetRowProps) =>
 
     const typeStyles = budgetTypeStyles[budget.type as BudgetType];
     const frequencyStyles = budgetFrequencyStyles[budget.frequency as BudgetFrequency];
+    const displayCurrentAmount = budget.amount - budget.currentAmount
 
   return (
     <TableRow>
@@ -131,8 +132,8 @@ const BudgetRow = ({budget, onViewDetails, onEdit, onDelete}: BudgetRowProps) =>
         </div>
       </TableCell>
       <TableCell className='flex flex-row justify-start items-center gap-2 '>
-        <Progress value={Number(progress)} className="w-[60%]" />
-        <p className="text-sm text-gray-500">{progress}% ({budget.currentAmount} / {budget.amount})</p>
+        <Progress value={Math.abs(Number(progress))} className="w-[60%]" indicatorColor={displayCurrentAmount < 0 ? 'bg-red-200' : 'bg-green-200'}/>
+        <p className="text-sm text-gray-500">{progress}% ({displayCurrentAmount} / {budget.amount})</p>
       </TableCell>
       <TableCell>{formatRemainingTime(remainingDays)}</TableCell>
       <TableCell>
